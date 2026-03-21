@@ -1,7 +1,8 @@
-import { httpAction } from "../_generated/server";
-import { internal } from "../_generated/api";
-import type { FunctionReference } from "convex/server";
+import { v } from "convex/values";
 import { Webhook } from "svix";
+import { internal } from "../_generated/api";
+import type { Doc } from "../_generated/dataModel";
+import { httpAction, internalMutation } from "../_generated/server";
 
 type StackWebhookEvent = {
   type: string;
@@ -36,12 +37,6 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
   }
 
   const wh = new Webhook(webhookSecret);
-  const internalApi = internal as unknown as {
-    "core/users": {
-      upsertFromStackWebhook: FunctionReference<"mutation", "internal">;
-      deleteFromStackWebhook: FunctionReference<"mutation", "internal">;
-    };
-  };
 
   try {
     const evt = wh.verify(payload, {
@@ -69,15 +64,12 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
         const email = asString(data.primary_email) ?? "";
         const imageUrl = asString(data.profile_image_url);
 
-        await ctx.runMutation(
-          internalApi["core/users"].upsertFromStackWebhook,
-          {
-            stackId,
-            name,
-            email,
-            imageUrl,
-          },
-        );
+        await ctx.runMutation(internal.webhooks.stack.upsertFromStackWebhook, {
+          stackId,
+          name,
+          email,
+          imageUrl,
+        });
         break;
       }
 
@@ -88,12 +80,9 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
           break;
         }
 
-        await ctx.runMutation(
-          internalApi["core/users"].deleteFromStackWebhook,
-          {
-            stackId,
-          },
-        );
+        await ctx.runMutation(internal.webhooks.stack.deleteFromStackWebhook, {
+          stackId,
+        });
         break;
       }
 
@@ -138,9 +127,6 @@ export const upsertFromStackWebhook = internalMutation({
     const insertDoc = {
       stackId: args.stackId,
       name: args.name,
-      isAdmin: false,
-      isCreator: false,
-      isSuperAdmin: false,
       email,
       imageUrl: args.imageUrl,
       updatedAt: now,

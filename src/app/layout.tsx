@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "../styles/globals.css";
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "next-themes";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { stackServerApp } from "@/stack/server";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn(
         "h-dvh",
         "antialiased",
@@ -40,12 +42,19 @@ export default function RootLayout({
         figtree.variable,
       )}
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <StackProvider app={stackServerApp}>
-          <StackTheme>
-            <ConvexClientProvider>{children}</ConvexClientProvider>
-          </StackTheme>
-        </StackProvider>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <StackProvider app={stackServerApp}>
+            <StackTheme>
+              <ConvexClientProvider>{children}</ConvexClientProvider>
+            </StackTheme>
+          </StackProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

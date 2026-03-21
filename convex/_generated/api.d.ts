@@ -8,13 +8,21 @@
  * @module
  */
 
+import type * as http from "../http.js";
+import type * as lib_auth from "../lib/auth.js";
+import type * as webhooks_stack from "../webhooks/stack.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  http: typeof http;
+  "lib/auth": typeof lib_auth;
+  "webhooks/stack": typeof webhooks_stack;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
@@ -42,4 +50,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  stack_auth: {};
+};
