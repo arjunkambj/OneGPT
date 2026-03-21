@@ -40,7 +40,7 @@ export default function RootLayout({
         figtree.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <StackProvider app={stackServerApp}>
           <StackTheme>
             <ConvexClientProvider>{children}</ConvexClientProvider>
