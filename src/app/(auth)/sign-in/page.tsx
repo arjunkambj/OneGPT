@@ -75,6 +75,10 @@ export default function SignInPage() {
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
       <div className="text-center">
+        <div className="flex justify-center mb-4">
+          <img src="/Black.svg" alt="OneGPT" className="size-8 dark:hidden" />
+          <img src="/white.svg" alt="OneGPT" className="size-8 hidden dark:block" />
+        </div>
         <h1 className="text-2xl font-bold">Welcome</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {step === "email"
@@ -93,7 +97,7 @@ export default function SignInPage() {
         >
           <div className="relative">
             <Icon
-              icon="solar:letter-bold"
+              icon="solar:letter-linear"
               width={20}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/80"
             />
@@ -119,7 +123,7 @@ export default function SignInPage() {
       ) : (
         <div className="flex flex-col items-center gap-4 rounded-lg border p-6">
           <Icon
-            icon="solar:lock-keyhole-bold-duotone"
+            icon="solar:lock-keyhole-linear"
             width={48}
             className="text-primary"
           />

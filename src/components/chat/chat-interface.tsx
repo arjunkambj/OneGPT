@@ -5,7 +5,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import Messages from "@/components/chat/messages";
 import { FormComponent } from "@/components/chat/form-component";
-import { SettingsDialog } from "@/components/chat/settings-dialog";
 import { chatReducer, createInitialState } from "@/components/chat/chat-state";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { ChatMessage } from "@/lib/types";
@@ -27,8 +26,6 @@ export function ChatInterface({
     "selected-model",
     "scira-default",
   );
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -117,9 +114,13 @@ export function ChatInterface({
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center px-4">
           {/* Brand */}
-          <h1 className="text-4xl font-semibold tracking-tight mb-8 text-foreground">
-            OneGPT
-          </h1>
+          <div className="flex items-center gap-3 mb-8">
+            <img src="/Black.svg" alt="OneGPT" className="size-8 dark:hidden" />
+            <img src="/white.svg" alt="OneGPT" className="size-8 hidden dark:block" />
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+              OneGPT
+            </h1>
+          </div>
 
           {/* Centered form */}
           <FormComponent
@@ -139,7 +140,7 @@ export function ChatInterface({
           {/* Quick action suggestions */}
           <div className="flex flex-wrap gap-2 mt-4 max-w-2xl justify-center">
             {[
-              "Write code",
+              "Rewrite this",
               "Explain concept",
               "Summarize text",
               "Brainstorm ideas",
@@ -158,8 +159,6 @@ export function ChatInterface({
         </div>
       )}
 
-      {/* Settings Dialog */}
-      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 }

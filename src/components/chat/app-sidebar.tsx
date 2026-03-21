@@ -2,21 +2,7 @@
 
 import React, { memo, useMemo, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  Plus,
-  ChevronsUpDown,
-  ChevronDown,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  Pin,
-  PinOff,
-  X,
-  Check,
-  LogOut,
-  MessageSquare,
-  Settings,
-} from 'lucide-react';
+import { Icon } from '@iconify/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,7 +79,6 @@ interface AppSidebarProps {
   activeChatId?: string | null;
   onNewChat?: () => void;
   onChatSelect?: (chatId: string) => void;
-  onSettingsOpen?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,14 +133,11 @@ const themes = [
 // ---------------------------------------------------------------------------
 // UserDropdownContent
 // ---------------------------------------------------------------------------
-function UserDropdownContent({
-  onSettingsOpen,
-}: {
-  onSettingsOpen?: () => void;
-}) {
+function UserDropdownContent() {
   const { theme: currentTheme, setTheme } = useTheme();
   const [themeOpen, setThemeOpen] = useState(false);
   const user = useUser();
+  const router = useRouter();
 
   const userName = user?.displayName ?? 'User';
   const userEmail = user?.primaryEmail ?? '';
@@ -177,10 +159,10 @@ function UserDropdownContent({
         {/* Settings */}
         <DropdownMenuItem
           onSelect={() => {
-            onSettingsOpen?.();
+            router.push("/settings");
           }}
         >
-          <Settings size={16} />
+          <Icon icon="solar:settings-linear" width={16} height={16} />
           <span>Settings</span>
         </DropdownMenuItem>
 
@@ -188,7 +170,7 @@ function UserDropdownContent({
         <div>
           <button
             onClick={() => setThemeOpen((prev) => !prev)}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-sm text-sm outline-none hover:bg-accent hover:text-accent-foreground cursor-default"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm outline-none hover:bg-accent hover:text-accent-foreground cursor-default"
           >
             <svg
               width={16}
@@ -217,8 +199,10 @@ function UserDropdownContent({
               />
             </svg>
             <span className="text-sm">Theme</span>
-            <ChevronDown
-              size={14}
+            <Icon
+              icon="solar:alt-arrow-down-linear"
+              width={14}
+              height={14}
               className={cn(
                 'ml-auto text-muted-foreground transition-transform duration-200',
                 themeOpen && 'rotate-180',
@@ -275,7 +259,7 @@ function UserDropdownContent({
 
       {/* Sign Out */}
       <DropdownMenuItem onSelect={() => user?.signOut()}>
-        <LogOut size={16} />
+        <Icon icon="solar:logout-2-linear" width={16} height={16} />
         <span>Sign Out</span>
       </DropdownMenuItem>
     </>
@@ -301,10 +285,14 @@ function ChatItemRow({
   onTogglePin: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
 
   return (
     <SidebarMenuItem>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenu open={menuOpen} onOpenChange={(open) => {
+        setMenuOpen(open);
+        if (!open) triggerRef.current?.blur();
+      }}>
         <div
           className={cn(
             'group flex items-center w-full rounded-md transition-all duration-200',
@@ -324,34 +312,35 @@ function ChatItemRow({
           </button>
           <DropdownMenuTrigger asChild>
             <Button
+              ref={triggerRef}
               variant="ghost"
               size="icon"
-              className="h-7 w-7 opacity-60 hover:opacity-100 text-muted-foreground hover:text-foreground shrink-0 mr-1 transition-opacity duration-150"
+              className="h-7 w-7 opacity-60 hover:opacity-100 text-muted-foreground hover:text-foreground bg-transparent! shrink-0 mr-1 transition-opacity duration-150 focus-visible:ring-0 focus-visible:ring-offset-0"
               onClick={(e) => e.stopPropagation()}
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <Icon icon="solar:menu-dots-bold" className="h-4 w-4" />
               <span className="sr-only">Open chat actions</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" side="right" sideOffset={20}>
             <DropdownMenuItem onClick={onTogglePin}>
               {chat.isPinned ? (
-                <PinOff className="h-4 w-4 mr-2" />
+                <Icon icon="solar:pin-linear" className="h-4 w-4 rotate-45" />
               ) : (
-                <Pin className="h-4 w-4 mr-2" />
+                <Icon icon="solar:pin-linear" className="h-4 w-4" />
               )}
               {chat.isPinned ? 'Unpin' : 'Pin'}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onRename}>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Icon icon="solar:pen-linear" className="h-4 w-4" />
               Edit title
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
+              variant="destructive"
               onClick={onDelete}
-              className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+              <Icon icon="solar:trash-bin-trash-linear" className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -368,7 +357,6 @@ export const AppSidebar = memo(function AppSidebar({
   activeChatId,
   onNewChat,
   onChatSelect,
-  onSettingsOpen,
 }: AppSidebarProps) {
   const { state, isMobile, setOpenMobile } = useSidebar();
   const router = useRouter();
@@ -377,7 +365,7 @@ export const AppSidebar = memo(function AppSidebar({
 
   const userName = user?.displayName ?? 'User';
   const userEmail = user?.primaryEmail ?? '';
-  const userImage = user?.profileImageUrl ?? '';
+  const userImage = user?.profileImageUrl || undefined;
 
   // ---- Local chat state (mock) ----
   const [chats, setChats] = useState<ChatItem[]>(MOCK_CHATS);
@@ -493,18 +481,19 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Header                                                            */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarHeader className="p-0!">
+      <SidebarHeader className="p-0! pt-1! pb-1!">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="relative flex items-center w-full h-12 px-2 overflow-visible">
+            <div className="relative flex items-center group-data-[collapsible=icon]:justify-center w-full h-10 px-2 overflow-visible">
               <Button
                 variant="ghost"
-                className="h-auto w-fit group-data-[collapsible=icon]:p-0 py-1 px-2 justify-start hover:bg-primary/10!"
+                className="h-auto w-fit group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center py-1 px-2 justify-start hover:bg-primary/10!"
                 onClick={handleNewChat}
               >
-                <div className="inline-flex items-center gap-1 w-fit group-data-[collapsible=icon]:mx-auto">
-                  <div className="flex items-center justify-center size-6 shrink-0 transition-opacity duration-200 group-data-[collapsible=icon]:group-hover:opacity-0">
-                    <MessageSquare className="size-5" />
+                <div className="inline-flex items-center gap-1.5 w-fit group-data-[collapsible=icon]:justify-center">
+                  <div className="flex items-center justify-center size-5 group-data-[collapsible=icon]:mx-auto shrink-0 transition-all duration-200">
+                    <img src="/Black.svg" alt="OneGPT" className="size-5 dark:hidden" />
+                    <img src="/white.svg" alt="OneGPT" className="size-5 hidden dark:block" />
                   </div>
                   <div className="flex flex-row items-center gap-2 leading-none group-data-[collapsible=icon]:hidden">
                     <span className="font-semibold tracking-tight text-lg">OneGPT</span>
@@ -519,16 +508,16 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Static nav (New Chat + Recent label)                              */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarGroup className="p-2 pb-0 gap-0 shrink-0">
+      <SidebarGroup className="p-2 pt-0 pb-0 gap-0 shrink-0">
         <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
           {/* New Chat */}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="New Chat"
-              className="bg-primary/10 hover:bg-primary/20 text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98]"
+              className="bg-primary/10 hover:bg-primary/20 text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98] group-data-[collapsible=icon]:justify-center"
               onClick={handleNewChat}
             >
-              <Plus size={18} strokeWidth={2.5} />
+              <span className="text-lg leading-none">+</span>
               <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -544,7 +533,8 @@ export const AppSidebar = memo(function AppSidebar({
           <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
             Recent
           </span>
-          <ChevronDown
+          <Icon
+            icon="solar:alt-arrow-down-linear"
             className={cn(
               'h-3 w-3 transition-transform duration-150',
               isRecentCollapsed ? '-rotate-90' : 'rotate-0',
@@ -616,68 +606,104 @@ export const AppSidebar = memo(function AppSidebar({
       <SidebarFooter className="group-data-[collapsible=icon]:border-none border-t border-border p-0 gap-0">
         <SidebarMenu className="gap-0">
           <SidebarMenuItem>
-            {/* Expanded state */}
-            <div className="group-data-[collapsible=icon]:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex w-full items-center justify-between gap-2 px-3 py-4 text-left outline-hidden ring-0 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-0 active:bg-primary/20 active:text-sidebar-accent-foreground">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                        <AvatarImage src={userImage} />
-                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                          {userName
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col gap-0.5 leading-none flex-1 min-w-0 items-start">
-                        <span className="font-semibold text-sm truncate text-sidebar-foreground text-left w-full">
-                          {userName}
-                        </span>
-                        <span className="text-xs text-sidebar-foreground/70 truncate text-left w-full">
-                          {userEmail}
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  side="top"
-                  align="center"
-                  className="w-62"
-                  sideOffset={4}
-                  collisionPadding={{ bottom: 20 }}
-                >
-                  <UserDropdownContent onSettingsOpen={onSettingsOpen} />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            {user ? (
+              <>
+                {/* Expanded state */}
+                <div className="group-data-[collapsible=icon]:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex w-full items-center justify-between gap-2 px-3 py-4 text-left outline-hidden ring-0 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-0 active:bg-primary/20 active:text-sidebar-accent-foreground">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Avatar className="h-8 w-8 overflow-hidden rounded-full">
+                            {userImage && <AvatarImage src={userImage} />}
+                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                              {userName
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col gap-0.5 leading-none flex-1 min-w-0 items-start">
+                            <span className="font-semibold text-sm truncate text-sidebar-foreground text-left w-full">
+                              {userName}
+                            </span>
+                            <span className="text-xs text-sidebar-foreground/70 truncate text-left w-full">
+                              {userEmail}
+                            </span>
+                          </div>
+                        </div>
+                        <Icon icon="solar:sort-vertical-linear" className="h-4 w-4 shrink-0 opacity-50" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      side="top"
+                      align="center"
+                      className="w-62"
+                      sideOffset={4}
+                      collisionPadding={{ bottom: 20 }}
+                    >
+                      <UserDropdownContent />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-            {/* Collapsed state - avatar only */}
-            <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 p-0 overflow-visible">
-                    <Avatar className="h-6 w-6 overflow-hidden rounded-full">
-                      <AvatarImage src={userImage} />
-                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-xs">
-                        {userName
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" align="end" className="w-60">
-                  <UserDropdownContent onSettingsOpen={onSettingsOpen} />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                {/* Collapsed state - avatar only */}
+                <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 p-0 overflow-visible">
+                        <Avatar className="h-6 w-6 overflow-hidden rounded-full">
+                          {userImage && <AvatarImage src={userImage} />}
+                          <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-xs">
+                            {userName
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="end" className="w-60">
+                      <UserDropdownContent />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Sign In button - expanded state */}
+                <div className="group-data-[collapsible=icon]:hidden px-2 py-3">
+                  <button
+                    onClick={() => router.push('/sign-in')}
+                    className="flex w-full items-center px-5 py-2.5 rounded-xl text-left outline-hidden transition-colors hover:bg-sidebar-accent active:bg-primary/20"
+                  >
+                    <div className="flex flex-col gap-0.5 leading-none flex-1 min-w-0">
+                      <span className="font-semibold text-sm text-sidebar-foreground">Sign In</span>
+                      <span className="text-[11px] text-muted-foreground">FREE - NO CREDIT CARD</span>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Sign In button - collapsed state */}
+                <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 p-0"
+                        onClick={() => router.push('/sign-in')}
+                      >
+                        <Icon icon="ph:user-plus" width={18} height={18} className="text-primary" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">Sign In</TooltipContent>
+                  </Tooltip>
+                </div>
+              </>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

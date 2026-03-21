@@ -8,15 +8,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import {
-  Copy,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  User,
-  Bot,
-  AlertCircle,
-} from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, MessagePart } from '@/lib/types';
@@ -48,9 +40,9 @@ function CopyMessageButton({ text }: { text: string }) {
           aria-label="Copy message"
         >
           {copied ? (
-            <Check className="h-4 w-4" />
+            <Icon icon="solar:check-circle-linear" className="h-4 w-4" />
           ) : (
-            <Copy className="h-4 w-4" />
+            <Icon icon="solar:copy-linear" className="h-4 w-4" />
           )}
         </Button>
       </TooltipTrigger>
@@ -78,9 +70,9 @@ function ReasoningSection({ reasoning, details }: {
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         {isOpen ? (
-          <ChevronUp className="h-3.5 w-3.5" />
+          <Icon icon="solar:alt-arrow-up-linear" className="h-3.5 w-3.5" />
         ) : (
-          <ChevronDown className="h-3.5 w-3.5" />
+          <Icon icon="solar:alt-arrow-down-linear" className="h-3.5 w-3.5" />
         )}
         <span className="font-medium">{summaryText}</span>
       </button>
@@ -101,7 +93,7 @@ function ErrorDisplay({ error }: { error: string }) {
       <div className="px-4 py-3 flex items-start gap-3">
         <div className="mt-0.5">
           <div className="bg-destructive/10 p-1.5 rounded-full">
-            <AlertCircle className="h-4 w-4 text-destructive" />
+            <Icon icon="solar:danger-circle-linear" className="h-4 w-4 text-destructive" />
           </div>
         </div>
         <div className="flex-1">
@@ -136,7 +128,7 @@ export function Message({ message, isLast }: MessageProps) {
         </div>
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className="bg-muted">
-            <User className="h-4 w-4 text-muted-foreground" />
+            <Icon icon="solar:user-linear" className="h-4 w-4 text-muted-foreground" />
           </AvatarFallback>
         </Avatar>
       </div>
@@ -150,7 +142,7 @@ export function Message({ message, isLast }: MessageProps) {
       <div className={cn('flex items-start gap-3', isLast && 'min-h-[200px]')}>
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className="bg-primary/10">
-            <Bot className="h-4 w-4 text-primary" />
+            <Icon icon="solar:bot-linear" className="h-4 w-4 text-primary" />
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0 space-y-1">

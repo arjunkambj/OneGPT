@@ -5,7 +5,7 @@ import { Message } from '@/components/chat/message';
 import type { ChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ArrowDown } from 'lucide-react';
+import { Icon } from '@iconify/react';
 
 interface MessagesProps {
   messages: ChatMessage[];
@@ -104,7 +104,7 @@ const Messages: React.FC<MessagesProps> = ({
           className="fixed bottom-32 right-8 z-10 rounded-full shadow-lg"
           onClick={scrollToBottom}
         >
-          <ArrowDown className="h-4 w-4" />
+          <Icon icon="solar:arrow-down-linear" className="h-4 w-4" />
         </Button>
       )}
     </div>

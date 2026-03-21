@@ -8,8 +8,13 @@
  * @module
  */
 
+import type * as customInstructions from "../customInstructions.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_users from "../lib/users.js";
+import type * as subscriptions from "../subscriptions.js";
+import type * as usage from "../usage.js";
+import type * as userPreferences from "../userPreferences.js";
 import type * as webhooks_stack from "../webhooks/stack.js";
 
 import type {
@@ -19,8 +24,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  customInstructions: typeof customInstructions;
   http: typeof http;
   "lib/auth": typeof lib_auth;
+  "lib/users": typeof lib_users;
+  subscriptions: typeof subscriptions;
+  usage: typeof usage;
+  userPreferences: typeof userPreferences;
   "webhooks/stack": typeof webhooks_stack;
 }>;
 

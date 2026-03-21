@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Copy, Check } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { cn } from '@/lib/utils';
 
 interface MarkdownProps {
@@ -27,9 +27,9 @@ function CopyButton({ text }: { text: string }) {
       type="button"
     >
       {copied ? (
-        <Check className="h-3.5 w-3.5" />
+        <Icon icon="solar:check-circle-linear" className="h-3.5 w-3.5" />
       ) : (
-        <Copy className="h-3.5 w-3.5" />
+        <Icon icon="solar:copy-linear" className="h-3.5 w-3.5" />
       )}
     </button>
   );

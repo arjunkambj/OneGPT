@@ -7,7 +7,7 @@ export const stackServerApp = new StackServerApp({
   secretServerKey: process.env.STACK_SECRET_SERVER_KEY,
   urls: {
     signIn: "/sign-in",
-    afterSignIn: "/overview",
+    afterSignIn: "/",
     afterSignUp: "/sign-in",
     afterSignOut: "/",
     },
