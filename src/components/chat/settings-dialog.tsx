@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Dialog,
@@ -32,6 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { models, PROVIDERS, getModelProvider } from "@/constant/ai-model";
+import { isSupportedModel } from "@/lib/ai/model-routing";
 import { cn } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 
@@ -250,12 +251,18 @@ function AppearanceTab() {
 // ---------------------------------------------------------------------------
 
 function ChatSettingsTab() {
-  const [selectedModel, setSelectedModel] = useState(models[0]?.value ?? "");
+  const supportedModels = useMemo(
+    () => models.filter((model) => isSupportedModel(model.value)),
+    [],
+  );
+  const [selectedModel, setSelectedModel] = useState(
+    supportedModels[0]?.value ?? "onegpt-default",
+  );
   const [customInstructions, setCustomInstructions] = useState("");
   const [instructionsEnabled, setInstructionsEnabled] = useState(true);
 
   // Group models by provider
-  const groupedModels = models.reduce<Record<string, typeof models>>(
+  const groupedModels = supportedModels.reduce<Record<string, typeof supportedModels>>(
     (acc, model) => {
       const provider =
         model.provider || getModelProvider(model.value, model.label);
@@ -373,7 +380,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             {/* Header */}
             <DrawerHeader className="pb-2 px-4 pt-3 shrink-0 border-b border-border/40">
               <DrawerTitle className="text-base font-medium flex items-center gap-2">
-                <Icon icon="solar:settings-linear" className="size-4 text-muted-foreground" />
+                <Icon
+                  icon="solar:settings-linear"
+                  className="size-4 text-muted-foreground"
+                />
                 <span>Settings</span>
               </DrawerTitle>
             </DrawerHeader>
@@ -387,37 +397,37 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             <div className="border-t border-border/40 bg-background/95 backdrop-blur shrink-0 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
               <div className="w-full py-1.5 px-3 flex gap-1.5 overflow-x-auto">
                 {tabItems.map((item) => (
-                    <button
-                      key={item.value}
-                      onClick={() => setCurrentTab(item.value)}
+                  <button
+                    key={item.value}
+                    onClick={() => setCurrentTab(item.value)}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-0.5 h-14 rounded-lg relative px-4 min-w-[4.5rem] shrink-0 transition-colors flex-1",
+                      currentTab === item.value
+                        ? "bg-accent/80"
+                        : "hover:bg-accent/40",
+                    )}
+                  >
+                    <Icon
+                      icon={item.icon}
                       className={cn(
-                        "flex flex-col items-center justify-center gap-0.5 h-14 rounded-lg relative px-4 min-w-[4.5rem] shrink-0 transition-colors flex-1",
+                        "h-4 w-4 transition-colors",
                         currentTab === item.value
-                          ? "bg-accent/80"
-                          : "hover:bg-accent/40",
+                          ? "text-foreground"
+                          : "text-muted-foreground",
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "text-[10px] mt-0.5 transition-colors",
+                        currentTab === item.value
+                          ? "text-foreground font-medium"
+                          : "text-muted-foreground",
                       )}
                     >
-                      <Icon
-                        icon={item.icon}
-                        className={cn(
-                          "h-4 w-4 transition-colors",
-                          currentTab === item.value
-                            ? "text-foreground"
-                            : "text-muted-foreground",
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          "text-[10px] mt-0.5 transition-colors",
-                          currentTab === item.value
-                            ? "text-foreground font-medium"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {item.label}
-                      </span>
-                    </button>
-                  ))}
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -432,7 +442,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       <DialogContent className="!max-w-2xl !w-full max-h-[85vh] !p-0 !gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-5 pb-4 m-0 border-b border-border/40">
           <DialogTitle className="text-lg font-semibold tracking-tight flex items-center gap-2.5">
-            <Icon icon="solar:settings-linear" className="size-5 text-muted-foreground" />
+            <Icon
+              icon="solar:settings-linear"
+              className="size-5 text-muted-foreground"
+            />
             <span>Settings</span>
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -445,21 +458,21 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <div className="w-48 border-r border-border/40 overflow-y-auto">
             <div className="p-3 flex flex-col gap-0.5">
               {tabItems.map((item) => (
-                  <button
-                    key={item.value}
-                    onClick={() => setCurrentTab(item.value)}
-                    className={cn(
-                      "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
-                      "hover:bg-accent/50",
-                      currentTab === item.value
-                        ? "bg-accent text-foreground font-medium"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    <Icon icon={item.icon} className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+                <button
+                  key={item.value}
+                  onClick={() => setCurrentTab(item.value)}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
+                    "hover:bg-accent/50",
+                    currentTab === item.value
+                      ? "bg-accent text-foreground font-medium"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon icon={item.icon} className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </button>
+              ))}
             </div>
           </div>
 

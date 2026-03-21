@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { memo, useMemo, useState, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Icon } from '@iconify/react';
+import React, { memo, useMemo, useState, useCallback } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { Icon } from "@iconify/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -23,21 +23,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,23 +47,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
-import { useUser } from '@stackframe/stack';
-
-// ---------------------------------------------------------------------------
-// Mock data
-// ---------------------------------------------------------------------------
-const MOCK_CHATS = [
-  { id: '1', title: 'How to build a React app', createdAt: new Date(), isPinned: true },
-  { id: '2', title: 'Understanding TypeScript generics', createdAt: new Date(), isPinned: false },
-  { id: '3', title: 'Next.js routing patterns', createdAt: new Date(Date.now() - 86400000), isPinned: false },
-  { id: '4', title: 'Tailwind CSS best practices', createdAt: new Date(Date.now() - 86400000 * 3), isPinned: false },
-  { id: '5', title: 'Database design principles', createdAt: new Date(Date.now() - 86400000 * 10), isPinned: false },
-];
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
+import { useUser } from "@stackframe/stack";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,7 +92,11 @@ const groupChatsByDate = (chats: ChatItem[]) => {
 
   chats.forEach((chat) => {
     const chatDate = new Date(chat.createdAt);
-    const chatDay = new Date(chatDate.getFullYear(), chatDate.getMonth(), chatDate.getDate());
+    const chatDay = new Date(
+      chatDate.getFullYear(),
+      chatDate.getMonth(),
+      chatDate.getDate(),
+    );
 
     if (chatDay.getTime() === today.getTime()) {
       todayChats.push(chat);
@@ -113,10 +109,12 @@ const groupChatsByDate = (chats: ChatItem[]) => {
     }
   });
 
-  if (todayChats.length > 0) groups.push({ label: 'Today', chats: todayChats });
-  if (yesterdayChats.length > 0) groups.push({ label: 'Yesterday', chats: yesterdayChats });
-  if (thisWeekChats.length > 0) groups.push({ label: 'Last 7 Days', chats: thisWeekChats });
-  if (olderChats.length > 0) groups.push({ label: 'Older', chats: olderChats });
+  if (todayChats.length > 0) groups.push({ label: "Today", chats: todayChats });
+  if (yesterdayChats.length > 0)
+    groups.push({ label: "Yesterday", chats: yesterdayChats });
+  if (thisWeekChats.length > 0)
+    groups.push({ label: "Last 7 Days", chats: thisWeekChats });
+  if (olderChats.length > 0) groups.push({ label: "Older", chats: olderChats });
 
   return groups;
 };
@@ -125,9 +123,13 @@ const groupChatsByDate = (chats: ChatItem[]) => {
 // Theme selector (used inside user dropdown)
 // ---------------------------------------------------------------------------
 const themes = [
-  { value: 'system', label: 'System', colors: ['#F9F9F9', '#6B5B4F', '#E8DFD5'] },
-  { value: 'light', label: 'Light', colors: ['#FAFAFA', '#6B5B4F', '#EBE0C8'] },
-  { value: 'dark', label: 'Dark', colors: ['#1A1A1A', '#E8D5A3', '#3A3020'] },
+  {
+    value: "system",
+    label: "System",
+    colors: ["#F9F9F9", "#6B5B4F", "#E8DFD5"],
+  },
+  { value: "light", label: "Light", colors: ["#FAFAFA", "#6B5B4F", "#EBE0C8"] },
+  { value: "dark", label: "Dark", colors: ["#1A1A1A", "#E8D5A3", "#3A3020"] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -139,16 +141,14 @@ function UserDropdownContent() {
   const user = useUser();
   const router = useRouter();
 
-  const userName = user?.displayName ?? 'User';
-  const userEmail = user?.primaryEmail ?? '';
+  const userName = user?.displayName ?? "User";
+  const userEmail = user?.primaryEmail ?? "";
 
   return (
     <>
       <DropdownMenuLabel className="py-2">
         <div className="flex flex-col gap-0.5">
-          <p className="text-sm font-semibold leading-none">
-            {userName}
-          </p>
+          <p className="text-sm font-semibold leading-none">{userName}</p>
           <p className="text-xs text-muted-foreground">{userEmail}</p>
         </div>
       </DropdownMenuLabel>
@@ -181,13 +181,19 @@ function UserDropdownContent() {
               <rect
                 width="20"
                 height="20"
-                fill={themes.find((t) => t.value === currentTheme)?.colors[0] || '#1A1A1A'}
+                fill={
+                  themes.find((t) => t.value === currentTheme)?.colors[0] ||
+                  "#1A1A1A"
+                }
               />
               <circle
                 cx="7"
                 cy="10"
                 r="4"
-                fill={themes.find((t) => t.value === currentTheme)?.colors[1] || '#E8D5A3'}
+                fill={
+                  themes.find((t) => t.value === currentTheme)?.colors[1] ||
+                  "#E8D5A3"
+                }
               />
               <rect
                 x="12"
@@ -195,7 +201,10 @@ function UserDropdownContent() {
                 width="6"
                 height="8"
                 rx="1.5"
-                fill={themes.find((t) => t.value === currentTheme)?.colors[2] || '#3A3020'}
+                fill={
+                  themes.find((t) => t.value === currentTheme)?.colors[2] ||
+                  "#3A3020"
+                }
               />
             </svg>
             <span className="text-sm">Theme</span>
@@ -204,22 +213,24 @@ function UserDropdownContent() {
               width={14}
               height={14}
               className={cn(
-                'ml-auto text-muted-foreground transition-transform duration-200',
-                themeOpen && 'rotate-180',
+                "ml-auto text-muted-foreground transition-transform duration-200",
+                themeOpen && "rotate-180",
               )}
             />
           </button>
           <div
             className={cn(
-              'grid transition-all duration-200 ease-in-out',
-              themeOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+              "grid transition-all duration-200 ease-in-out",
+              themeOpen
+                ? "grid-rows-[1fr] opacity-100"
+                : "grid-rows-[0fr] opacity-0",
             )}
           >
             <div className="overflow-hidden">
               <div
                 className={cn(
-                  'flex flex-col gap-0.5 pt-1 pb-0.5 ml-[17px] pl-3 border-l border-border/60 transition-colors duration-200',
-                  themeOpen ? 'border-border/60' : 'border-transparent',
+                  "flex flex-col gap-0.5 pt-1 pb-0.5 ml-[17px] pl-3 border-l border-border/60 transition-colors duration-200",
+                  themeOpen ? "border-border/60" : "border-transparent",
                 )}
               >
                 {themes.map((t) => (
@@ -227,10 +238,10 @@ function UserDropdownContent() {
                     key={t.value}
                     onClick={() => setTheme(t.value)}
                     className={cn(
-                      'w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg text-left transition-colors duration-150',
+                      "w-full flex items-center gap-3 px-2.5 py-1.5 rounded-lg text-left transition-colors duration-150",
                       currentTheme === t.value
-                        ? 'bg-accent/50 text-foreground'
-                        : 'text-muted-foreground hover:bg-accent/30 hover:text-foreground',
+                        ? "bg-accent/50 text-foreground"
+                        : "text-muted-foreground hover:bg-accent/30 hover:text-foreground",
                     )}
                   >
                     <svg
@@ -241,7 +252,14 @@ function UserDropdownContent() {
                     >
                       <rect width="20" height="20" fill={t.colors[0]} />
                       <circle cx="7" cy="10" r="4" fill={t.colors[1]} />
-                      <rect x="12" y="6" width="6" height="8" rx="1.5" fill={t.colors[2]} />
+                      <rect
+                        x="12"
+                        y="6"
+                        width="6"
+                        height="8"
+                        rx="1.5"
+                        fill={t.colors[2]}
+                      />
                     </svg>
                     <span className="text-xs font-medium">{t.label}</span>
                     {currentTheme === t.value && (
@@ -289,25 +307,28 @@ function ChatItemRow({
 
   return (
     <SidebarMenuItem>
-      <DropdownMenu open={menuOpen} onOpenChange={(open) => {
-        setMenuOpen(open);
-        if (!open) triggerRef.current?.blur();
-      }}>
+      <DropdownMenu
+        open={menuOpen}
+        onOpenChange={(open) => {
+          setMenuOpen(open);
+          if (!open) triggerRef.current?.blur();
+        }}
+      >
         <div
           className={cn(
-            'group flex items-center w-full rounded-md transition-all duration-200',
-            isActive || menuOpen ? 'bg-primary/15' : 'hover:bg-primary/8',
+            "group flex items-center w-full rounded-md transition-all duration-200",
+            isActive || menuOpen ? "bg-primary/15" : "hover:bg-primary/8",
           )}
         >
           <button
             onClick={onSelect}
             className={cn(
-              'flex items-center gap-2 flex-1 min-w-0 px-2 py-1 text-left',
-              isActive && 'font-medium',
+              "flex items-center gap-2 flex-1 min-w-0 px-2 py-1 text-left",
+              isActive && "font-medium",
             )}
           >
             <span className="truncate flex-1 text-sm">
-              {chat.title || 'Untitled Chat'}
+              {chat.title || "Untitled Chat"}
             </span>
           </button>
           <DropdownMenuTrigger asChild>
@@ -329,17 +350,14 @@ function ChatItemRow({
               ) : (
                 <Icon icon="solar:pin-linear" className="h-4 w-4" />
               )}
-              {chat.isPinned ? 'Unpin' : 'Pin'}
+              {chat.isPinned ? "Unpin" : "Pin"}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onRename}>
               <Icon icon="solar:pen-linear" className="h-4 w-4" />
               Edit title
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={onDelete}
-            >
+            <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Icon icon="solar:trash-bin-trash-linear" className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
@@ -363,17 +381,27 @@ export const AppSidebar = memo(function AppSidebar({
   const pathname = usePathname();
   const user = useUser();
 
-  const userName = user?.displayName ?? 'User';
-  const userEmail = user?.primaryEmail ?? '';
+  const userName = user?.displayName ?? "User";
+  const userEmail = user?.primaryEmail ?? "";
   const userImage = user?.profileImageUrl || undefined;
 
-  // ---- Local chat state (mock) ----
-  const [chats, setChats] = useState<ChatItem[]>(MOCK_CHATS);
-  const [isLoading, setIsLoading] = useState(false);
+  // ---- Real Convex data ----
+  const chatsData = useQuery(api.chats.listChats);
+  const renameMutation = useMutation(api.chats.updateChatTitle);
+  const deleteMutation = useMutation(api.chats.deleteChat);
+  const togglePinMutation = useMutation(api.chats.togglePin);
+
+  const chats: ChatItem[] = (chatsData ?? []).map((c) => ({
+    id: c._id,
+    title: c.title,
+    createdAt: new Date(c.createdAt),
+    isPinned: c.isPinned,
+  }));
+  const isLoading = chatsData === undefined;
 
   // ---- Rename state ----
   const [renameTarget, setRenameTarget] = useState<ChatItem | null>(null);
-  const [renameValue, setRenameValue] = useState('');
+  const [renameValue, setRenameValue] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
 
   // ---- Delete state ----
@@ -390,28 +418,37 @@ export const AppSidebar = memo(function AppSidebar({
 
   // ---- Derived data ----
   const pinnedChats = useMemo(() => chats.filter((c) => c.isPinned), [chats]);
-  const unpinnedChats = useMemo(() => chats.filter((c) => !c.isPinned), [chats]);
-  const groupedChats = useMemo(() => groupChatsByDate(unpinnedChats), [unpinnedChats]);
+  const unpinnedChats = useMemo(
+    () => chats.filter((c) => !c.isPinned),
+    [chats],
+  );
+  const groupedChats = useMemo(
+    () => groupChatsByDate(unpinnedChats),
+    [unpinnedChats],
+  );
 
   // ---- Handlers ----
   const handleChatSelect = useCallback(
     (chatId: string) => {
       closeMobileSidebar();
+      router.push(`/chat/${chatId}`);
       onChatSelect?.(chatId);
     },
-    [closeMobileSidebar, onChatSelect],
+    [closeMobileSidebar, onChatSelect, router],
   );
 
   const handleNewChat = useCallback(() => {
     closeMobileSidebar();
+    router.push("/");
     onNewChat?.();
-  }, [closeMobileSidebar, onNewChat]);
+  }, [closeMobileSidebar, onNewChat, router]);
 
-  const handleTogglePin = useCallback((chatId: string) => {
-    setChats((prev) =>
-      prev.map((c) => (c.id === chatId ? { ...c, isPinned: !c.isPinned } : c)),
-    );
-  }, []);
+  const handleTogglePin = useCallback(
+    (chatId: string) => {
+      togglePinMutation({ chatId: chatId as Id<"chats"> });
+    },
+    [togglePinMutation],
+  );
 
   const openRenameDialog = useCallback((chat: ChatItem) => {
     setRenameTarget(chat);
@@ -420,22 +457,22 @@ export const AppSidebar = memo(function AppSidebar({
 
   const closeRenameDialog = useCallback(() => {
     setRenameTarget(null);
-    setRenameValue('');
+    setRenameValue("");
   }, []);
 
-  const handleRenameSubmit = useCallback(() => {
+  const handleRenameSubmit = useCallback(async () => {
     if (!renameTarget) return;
     const next = renameValue.trim();
     if (!next) return;
 
     setIsRenaming(true);
-    // Mock: update locally
-    setChats((prev) =>
-      prev.map((c) => (c.id === renameTarget.id ? { ...c, title: next } : c)),
-    );
-    setIsRenaming(false);
-    closeRenameDialog();
-  }, [renameTarget, renameValue, closeRenameDialog]);
+    try {
+      await renameMutation({ chatId: renameTarget.id as Id<"chats">, title: next });
+    } finally {
+      setIsRenaming(false);
+      closeRenameDialog();
+    }
+  }, [renameTarget, renameValue, closeRenameDialog, renameMutation]);
 
   const openDeleteDialog = useCallback((chat: ChatItem) => {
     setDeleteTarget(chat);
@@ -445,14 +482,16 @@ export const AppSidebar = memo(function AppSidebar({
     setDeleteTarget(null);
   }, []);
 
-  const handleConfirmDelete = useCallback(() => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
-    // Mock: remove locally
-    setChats((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-    setIsDeleting(false);
-    closeDeleteDialog();
-  }, [deleteTarget, closeDeleteDialog]);
+    try {
+      await deleteMutation({ chatId: deleteTarget.id as Id<"chats"> });
+    } finally {
+      setIsDeleting(false);
+      closeDeleteDialog();
+    }
+  }, [deleteTarget, closeDeleteDialog, deleteMutation]);
 
   // ---- Render helpers ----
   const renderChatItem = useCallback(
@@ -470,7 +509,14 @@ export const AppSidebar = memo(function AppSidebar({
         />
       );
     },
-    [activeChatId, pathname, handleChatSelect, openRenameDialog, openDeleteDialog, handleTogglePin],
+    [
+      activeChatId,
+      pathname,
+      handleChatSelect,
+      openRenameDialog,
+      openDeleteDialog,
+      handleTogglePin,
+    ],
   );
 
   return (
@@ -492,11 +538,21 @@ export const AppSidebar = memo(function AppSidebar({
               >
                 <div className="inline-flex items-center gap-1.5 w-fit group-data-[collapsible=icon]:justify-center">
                   <div className="flex items-center justify-center size-5 group-data-[collapsible=icon]:mx-auto shrink-0 transition-all duration-200">
-                    <img src="/Black.svg" alt="OneGPT" className="size-5 dark:hidden" />
-                    <img src="/white.svg" alt="OneGPT" className="size-5 hidden dark:block" />
+                    <img
+                      src="/Black.svg"
+                      alt="OneGPT"
+                      className="size-5 dark:hidden"
+                    />
+                    <img
+                      src="/white.svg"
+                      alt="OneGPT"
+                      className="size-5 hidden dark:block"
+                    />
                   </div>
                   <div className="flex flex-row items-center gap-2 leading-none group-data-[collapsible=icon]:hidden">
-                    <span className="font-semibold tracking-tight text-lg">OneGPT</span>
+                    <span className="font-semibold tracking-tight text-lg">
+                      OneGPT
+                    </span>
                   </div>
                 </div>
               </Button>
@@ -518,7 +574,9 @@ export const AppSidebar = memo(function AppSidebar({
               onClick={handleNewChat}
             >
               <span className="text-lg leading-none">+</span>
-              <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
+              <span className="group-data-[collapsible=icon]:hidden">
+                New Chat
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -536,8 +594,8 @@ export const AppSidebar = memo(function AppSidebar({
           <Icon
             icon="solar:alt-arrow-down-linear"
             className={cn(
-              'h-3 w-3 transition-transform duration-150',
-              isRecentCollapsed ? '-rotate-90' : 'rotate-0',
+              "h-3 w-3 transition-transform duration-150",
+              isRecentCollapsed ? "-rotate-90" : "rotate-0",
             )}
           />
         </button>
@@ -591,7 +649,9 @@ export const AppSidebar = memo(function AppSidebar({
               ) : (
                 <SidebarMenuItem>
                   <div className="px-2 py-1.5">
-                    <span className="text-sm text-sidebar-foreground/50">No chats yet</span>
+                    <span className="text-sm text-sidebar-foreground/50">
+                      No chats yet
+                    </span>
                   </div>
                 </SidebarMenuItem>
               )}
@@ -618,9 +678,9 @@ export const AppSidebar = memo(function AppSidebar({
                             {userImage && <AvatarImage src={userImage} />}
                             <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                               {userName
-                                .split(' ')
+                                .split(" ")
                                 .map((n) => n[0])
-                                .join('')
+                                .join("")
                                 .toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -633,7 +693,10 @@ export const AppSidebar = memo(function AppSidebar({
                             </span>
                           </div>
                         </div>
-                        <Icon icon="solar:sort-vertical-linear" className="h-4 w-4 shrink-0 opacity-50" />
+                        <Icon
+                          icon="solar:sort-vertical-linear"
+                          className="h-4 w-4 shrink-0 opacity-50"
+                        />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -652,20 +715,28 @@ export const AppSidebar = memo(function AppSidebar({
                 <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 p-0 overflow-visible">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 p-0 overflow-visible"
+                      >
                         <Avatar className="h-6 w-6 overflow-hidden rounded-full">
                           {userImage && <AvatarImage src={userImage} />}
                           <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-xs">
                             {userName
-                              .split(' ')
+                              .split(" ")
                               .map((n) => n[0])
-                              .join('')
+                              .join("")
                               .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent side="right" align="end" className="w-60">
+                    <DropdownMenuContent
+                      side="right"
+                      align="end"
+                      className="w-60"
+                    >
                       <UserDropdownContent />
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -676,12 +747,16 @@ export const AppSidebar = memo(function AppSidebar({
                 {/* Sign In button - expanded state */}
                 <div className="group-data-[collapsible=icon]:hidden px-2 py-3">
                   <button
-                    onClick={() => router.push('/sign-in')}
+                    onClick={() => router.push("/sign-in")}
                     className="flex w-full items-center px-5 py-2.5 rounded-xl text-left outline-hidden transition-colors hover:bg-sidebar-accent active:bg-primary/20"
                   >
                     <div className="flex flex-col gap-0.5 leading-none flex-1 min-w-0">
-                      <span className="font-semibold text-sm text-sidebar-foreground">Sign In</span>
-                      <span className="text-[11px] text-muted-foreground">FREE - NO CREDIT CARD</span>
+                      <span className="font-semibold text-sm text-sidebar-foreground">
+                        Sign In
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        FREE - NO CREDIT CARD
+                      </span>
                     </div>
                   </button>
                 </div>
@@ -694,9 +769,14 @@ export const AppSidebar = memo(function AppSidebar({
                         variant="ghost"
                         size="icon"
                         className="h-10 w-10 p-0"
-                        onClick={() => router.push('/sign-in')}
+                        onClick={() => router.push("/sign-in")}
                       >
-                        <Icon icon="ph:user-plus" width={18} height={18} className="text-primary" />
+                        <Icon
+                          icon="ph:user-plus"
+                          width={18}
+                          height={18}
+                          className="text-primary"
+                        />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="right">Sign In</TooltipContent>
@@ -726,11 +806,11 @@ export const AppSidebar = memo(function AppSidebar({
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleRenameSubmit();
                 }
-                if (e.key === 'Escape') {
+                if (e.key === "Escape") {
                   e.preventDefault();
                   closeRenameDialog();
                 }
@@ -745,7 +825,7 @@ export const AppSidebar = memo(function AppSidebar({
               Cancel
             </Button>
             <Button onClick={handleRenameSubmit} disabled={isRenaming}>
-              {isRenaming ? 'Saving...' : 'Save'}
+              {isRenaming ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -764,10 +844,10 @@ export const AppSidebar = memo(function AppSidebar({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete{' '}
+              This action cannot be undone. This will permanently delete{" "}
               <span className="font-medium text-foreground">
-                {deleteTarget?.title || 'this chat'}
-              </span>{' '}
+                {deleteTarget?.title || "this chat"}
+              </span>{" "}
               and all of its content.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -778,7 +858,7 @@ export const AppSidebar = memo(function AppSidebar({
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -787,4 +867,4 @@ export const AppSidebar = memo(function AppSidebar({
   );
 });
 
-AppSidebar.displayName = 'AppSidebar';
+AppSidebar.displayName = "AppSidebar";

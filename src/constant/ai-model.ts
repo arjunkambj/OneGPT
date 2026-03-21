@@ -13,28 +13,28 @@ export interface ModelParameters {
 
 // Provider definitions for model categorization
 export type ModelProvider =
-  | 'scira'
-  | 'xai'
-  | 'openai'
-  | 'anthropic'
-  | 'google'
-  | 'alibaba'
-  | 'mistral'
-  | 'deepseek'
-  | 'zhipu'
-  | 'cohere'
-  | 'moonshot'
-  | 'minimax'
-  | 'bytedance'
-  | 'arcee'
-  | 'vercel'
-  | 'amazon'
-  | 'xiaomi'
-  | 'kwaipilot'
-  | 'stepfun'
-  | 'sarvam'
-  | 'inception'
-  | 'nvidia';
+  | "onegpt"
+  | "xai"
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "alibaba"
+  | "mistral"
+  | "deepseek"
+  | "zhipu"
+  | "cohere"
+  | "moonshot"
+  | "minimax"
+  | "bytedance"
+  | "arcee"
+  | "vercel"
+  | "amazon"
+  | "xiaomi"
+  | "kwaipilot"
+  | "stepfun"
+  | "sarvam"
+  | "inception"
+  | "nvidia";
 
 export interface ProviderInfo {
   id: ModelProvider;
@@ -65,7 +65,7 @@ export interface Model {
 }
 
 export const PROVIDERS: Record<ModelProvider, ProviderInfo> = {
-  scira: { id: "scira", name: "Scira", icon: "scira" },
+  onegpt: { id: "onegpt", name: "OneGPT", icon: "onegpt" },
   xai: { id: "xai", name: "xAI", icon: "xai", hasNew: true },
   openai: { id: "openai", name: "OpenAI", icon: "openai", hasNew: true },
   anthropic: {
@@ -106,7 +106,7 @@ export const PROVIDERS: Record<ModelProvider, ProviderInfo> = {
 
 export const models: Model[] = [
   {
-    value: "scira-auto",
+    value: "onegpt-auto",
     label: "Auto",
     description: "Automatically routes your query to the best model",
     vision: true,
@@ -119,12 +119,11 @@ export const models: Model[] = [
     freeUnlimited: false,
     maxOutputTokens: 16000,
     isNew: true,
-    provider: "scira",
+    provider: "onegpt",
   },
   // Models (xAI)
   {
-    // grok-4.20-multi-agent-beta-latest
-    value: "grok-4.20-multi-agent-beta-latest",
+    value: "onegpt-grok-4.20-multi-agent-beta",
     label: "Grok 4.20 Multi Agent Beta",
     description: "xAI's experimental beta multi-agent model",
     vision: true,
@@ -140,7 +139,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-grok-4",
+    value: "onegpt-grok-4",
     label: "Grok 4",
     description: "xAI's most intelligent LLM",
     vision: true,
@@ -155,7 +154,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-grok-4.20-experimental-beta-0304",
+    value: "onegpt-grok-4.20-experimental-beta-0304",
     label: "Grok 4.20 Beta",
     description: "xAI's experimental beta chat model",
     vision: true,
@@ -171,7 +170,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-grok-4.20-experimental-beta-0304-thinking",
+    value: "onegpt-grok-4.20-experimental-beta-0304-thinking",
     label: "Grok 4.20 Beta Thinking",
     description: "xAI's experimental beta reasoning model",
     vision: true,
@@ -187,7 +186,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-default",
+    value: "onegpt-default",
     label: "Grok 4.1 Fast",
     description: "xAI's greatest and fastest multimodel LLM",
     vision: true,
@@ -205,7 +204,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-sarvam-105b",
+    value: "onegpt-sarvam-105b",
     label: "Sarvam 105B",
     description: "Sarvam's flagship model for chat and reasoning",
     vision: false,
@@ -224,7 +223,7 @@ export const models: Model[] = [
     },
   },
   {
-    value: "scira-grok4.1-fast-thinking",
+    value: "onegpt-grok4.1-fast-thinking",
     label: "Grok 4.1 Fast Thinking",
     description: "xAI's greatest and fastest multimodel reasoning LLM",
     vision: true,
@@ -242,7 +241,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-code",
+    value: "onegpt-code",
     label: "Grok Code",
     description: "xAI's advanced coding LLM",
     vision: false,
@@ -258,7 +257,7 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "scira-seed-2.0-mini",
+    value: "onegpt-seed-2.0-mini",
     label: "Seed 2.0 Mini",
     description: "ByteDance's compact and efficient reasoning model",
     vision: true,
@@ -275,7 +274,7 @@ export const models: Model[] = [
     provider: "bytedance",
   },
   {
-    value: "scira-seed-2.0-lite",
+    value: "onegpt-seed-2.0-lite",
     label: "Seed 2.0 Lite",
     description: "ByteDance's lightweight vision model",
     vision: true,
@@ -292,7 +291,7 @@ export const models: Model[] = [
     provider: "bytedance",
   },
   {
-    value: "scira-seed-1.6",
+    value: "onegpt-seed-1.6",
     label: "Seed 1.6",
     description: "ByteDance's recent reasoning model",
     vision: true,
@@ -308,7 +307,7 @@ export const models: Model[] = [
     provider: "bytedance",
   },
   {
-    value: "scira-seed-1.8",
+    value: "onegpt-seed-1.8",
     label: "Seed 1.8",
     description: "ByteDance's latest reasoning model",
     vision: true,
@@ -324,7 +323,7 @@ export const models: Model[] = [
     provider: "bytedance",
   },
   {
-    value: "scira-seed-1.6-flash",
+    value: "onegpt-seed-1.6-flash",
     label: "Seed 1.6 Flash",
     description: "ByteDance's fast vision reasoning model",
     vision: true,
@@ -341,7 +340,7 @@ export const models: Model[] = [
     provider: "bytedance",
   },
   {
-    value: "scira-qwen-32b",
+    value: "onegpt-qwen-32b",
     label: "Qwen 3 32B",
     description: "Alibaba's base LLM",
     vision: false,
@@ -363,7 +362,7 @@ export const models: Model[] = [
     provider: "alibaba",
   },
   {
-    value: "scira-nemotron-3-super",
+    value: "onegpt-nemotron-3-super",
     label: "Nemotron 3 Super",
     description: "NVIDIA's powerful Nemotron 3 model",
     vision: false,
@@ -378,7 +377,7 @@ export const models: Model[] = [
     provider: "nvidia",
   },
   {
-    value: "scira-gpt-oss-20",
+    value: "onegpt-gpt-oss-20",
     label: "GPT OSS 20B",
     description: "OpenAI's small OSS LLM",
     vision: false,
@@ -394,7 +393,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt5-nano",
+    value: "onegpt-gpt5-nano",
     label: "GPT 5 Nano",
     description: "OpenAI's smallest flagship LLM",
     vision: true,
@@ -411,7 +410,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-google-lite",
+    value: "onegpt-google-lite",
     label: "Gemini 2.5 Flash Lite",
     description: "Google's advanced small LLM",
     vision: true,
@@ -428,7 +427,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-ministral-3b",
+    value: "onegpt-ministral-3b",
     label: "Ministral 3 3B",
     description: "Mistral's mini-model 3B multi-modal LLM",
     vision: true,
@@ -444,7 +443,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-ministral-8b",
+    value: "onegpt-ministral-8b",
     label: "Ministral 3 8B",
     description: "Mistral's mini-model 8B multi-modal LLM",
     vision: true,
@@ -460,7 +459,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-devstral",
+    value: "onegpt-devstral",
     label: "Devstral 2",
     description: "Mistral's coding-focused LLM",
     vision: false,
@@ -476,7 +475,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-devstral-small",
+    value: "onegpt-devstral-small",
     label: "Devstral Small 2",
     description: "Mistral's small coding-focused LLM",
     vision: false,
@@ -492,7 +491,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-ministral-14b",
+    value: "onegpt-ministral-14b",
     label: "Ministral 3 14B",
     description: "Mistral's mini-model 14B multi-modal LLM",
     vision: true,
@@ -508,7 +507,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-mistral-large",
+    value: "onegpt-mistral-large",
     label: "Mistral Large 3",
     description: "Mistral's latest and greatest large multi-modal LLM",
     vision: true,
@@ -524,7 +523,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-mistral-medium",
+    value: "onegpt-mistral-medium",
     label: "Mistral Medium",
     description: "Mistral's medium multi-modal LLM",
     vision: true,
@@ -540,7 +539,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-magistral-small",
+    value: "onegpt-magistral-small",
     label: "Magistral Small",
     description: "Mistral's small reasoning LLM",
     vision: true,
@@ -556,7 +555,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-magistral-medium",
+    value: "onegpt-magistral-medium",
     label: "Magistral Medium",
     description: "Mistral's medium reasoning LLM",
     vision: true,
@@ -572,7 +571,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-mistral-small",
+    value: "onegpt-mistral-small",
     label: "Mistral Small 4",
     description: "Mistral's small efficient model",
     vision: false,
@@ -588,7 +587,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-mistral-small-think",
+    value: "onegpt-mistral-small-think",
     label: "Mistral Small 4 Thinking",
     description: "Mistral's small model with reasoning mode enabled",
     vision: false,
@@ -604,7 +603,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-leanstral",
+    value: "onegpt-leanstral",
     label: "Leanstral",
     description: "Mistral's lean and efficient small model",
     vision: false,
@@ -620,7 +619,7 @@ export const models: Model[] = [
     provider: "mistral",
   },
   {
-    value: "scira-trinity-mini",
+    value: "onegpt-trinity-mini",
     label: "Trinity Mini",
     description: "Arcee's small reasoning LLM",
     vision: false,
@@ -642,7 +641,7 @@ export const models: Model[] = [
     provider: "arcee",
   },
   {
-    value: "scira-trinity-large",
+    value: "onegpt-trinity-large",
     label: "Trinity Large",
     description: "Arcee's large reasoning LLM via OpenRouter",
     vision: true,
@@ -664,7 +663,7 @@ export const models: Model[] = [
     provider: "arcee",
   },
   {
-    value: "scira-gpt-oss-120",
+    value: "onegpt-gpt-oss-120",
     label: "GPT OSS 120B",
     description: "OpenAI's advanced OSS LLM",
     vision: false,
@@ -680,7 +679,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-4.1-nano",
+    value: "onegpt-gpt-4.1-nano",
     label: "GPT 4.1 Nano",
     description: "OpenAI's smallest LLM",
     vision: true,
@@ -697,7 +696,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-4.1-mini",
+    value: "onegpt-gpt-4.1-mini",
     label: "GPT 4.1 Mini",
     description: "OpenAI's small LLM",
     vision: true,
@@ -714,7 +713,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-4.1",
+    value: "onegpt-gpt-4.1",
     label: "GPT 4.1",
     description: "OpenAI's LLM",
     vision: true,
@@ -732,7 +731,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.1",
+    value: "onegpt-gpt-5.1",
     label: "GPT 5.1 Instant",
     description: "OpenAI's fast and smart LLM",
     vision: true,
@@ -750,7 +749,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.1-thinking",
+    value: "onegpt-gpt-5.1-thinking",
     label: "GPT 5.1 Thinking",
     description: "OpenAI's recent and smart reasoning LLM",
     vision: true,
@@ -768,7 +767,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.2",
+    value: "onegpt-gpt-5.2",
     label: "GPT 5.2 Instant",
     description: "OpenAI's latest and greatest LLM",
     vision: true,
@@ -786,7 +785,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.3-chat-latest",
+    value: "onegpt-gpt-5.3-chat-latest",
     label: "GPT 5.3 Instant",
     description: "OpenAI's latest chat-optimized LLM",
     vision: true,
@@ -804,7 +803,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.4",
+    value: "onegpt-gpt-5.4",
     label: "GPT 5.4 Instant",
     description: "OpenAI's latest and greatest LLM",
     vision: true,
@@ -822,7 +821,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.4-mini",
+    value: "onegpt-gpt-5.4-mini",
     label: "GPT 5.4 Mini",
     description: "OpenAI's small GPT 5.4 model",
     vision: true,
@@ -840,7 +839,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.4-nano",
+    value: "onegpt-gpt-5.4-nano",
     label: "GPT 5.4 Nano",
     description: "OpenAI's smallest GPT 5.4 model",
     vision: true,
@@ -858,7 +857,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.4-thinking",
+    value: "onegpt-gpt-5.4-thinking",
     label: "GPT 5.4 Thinking",
     description: "OpenAI's latest and greatest reasoning LLM",
     vision: true,
@@ -876,7 +875,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.2-thinking",
+    value: "onegpt-gpt-5.2-thinking",
     label: "GPT 5.2 Thinking",
     description: "OpenAI's latest and greatest reasoning LLM",
     vision: true,
@@ -894,7 +893,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.2-thinking-xhigh",
+    value: "onegpt-gpt-5.2-thinking-xhigh",
     label: "GPT 5.2 Thinking XHigh",
     description: "OpenAI's latest and greatest reasoning LLM",
     vision: true,
@@ -912,7 +911,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt5-mini",
+    value: "onegpt-gpt5-mini",
     label: "GPT 5 Mini",
     description: "OpenAI's small flagship LLM",
     vision: true,
@@ -930,7 +929,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt5",
+    value: "onegpt-gpt5",
     label: "GPT 5",
     description: "OpenAI's flagship LLM",
     vision: true,
@@ -948,7 +947,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt5-medium",
+    value: "onegpt-gpt5-medium",
     label: "GPT 5 Medium",
     description: "OpenAI's latest flagship reasoning LLM",
     vision: true,
@@ -966,7 +965,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.1-codex",
+    value: "onegpt-gpt-5.1-codex",
     label: "GPT 5.1 Codex",
     description: "OpenAI's advanced coding LLM",
     vision: true,
@@ -984,7 +983,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.1-codex-mini",
+    value: "onegpt-gpt-5.1-codex-mini",
     label: "GPT 5.1 Codex Mini",
     description: "OpenAI's advanced coding LLM",
     vision: true,
@@ -1002,7 +1001,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.1-codex-max",
+    value: "onegpt-gpt-5.1-codex-max",
     label: "GPT 5.1 Codex Max",
     description: "OpenAI's advanced coding LLM",
     vision: true,
@@ -1020,7 +1019,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.2-codex",
+    value: "onegpt-gpt-5.2-codex",
     label: "GPT 5.2 Codex",
     description: "OpenAI's latest advanced coding LLM",
     vision: true,
@@ -1038,7 +1037,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt-5.3-codex",
+    value: "onegpt-gpt-5.3-codex",
     label: "GPT 5.3 Codex",
     description: "OpenAI's latest advanced coding LLM",
     vision: true,
@@ -1056,7 +1055,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-gpt5-codex",
+    value: "onegpt-gpt5-codex",
     label: "GPT 5 Codex",
     description: "OpenAI's advanced coding LLM",
     vision: true,
@@ -1074,7 +1073,7 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "scira-cmd-a",
+    value: "onegpt-cmd-a",
     label: "Command A",
     description: "Cohere's advanced command LLM",
     vision: false,
@@ -1090,7 +1089,7 @@ export const models: Model[] = [
     provider: "cohere",
   },
   {
-    value: "scira-cmd-a-think",
+    value: "onegpt-cmd-a-think",
     label: "Command A Thinking",
     description: "Cohere's advanced command LLM with thinking",
     vision: false,
@@ -1106,7 +1105,7 @@ export const models: Model[] = [
     provider: "cohere",
   },
   {
-    value: "scira-kat-coder",
+    value: "onegpt-kat-coder",
     label: "KAT-Coder-Pro V1",
     description: "Kwaipilot's advanced coding LLM",
     vision: false,
@@ -1122,7 +1121,7 @@ export const models: Model[] = [
     provider: "kwaipilot",
   },
   {
-    value: "scira-deepseek-v3",
+    value: "onegpt-deepseek-v3",
     label: "DeepSeek v3",
     description: "DeepSeek's previous advanced chat LLM",
     vision: false,
@@ -1144,7 +1143,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-v3.1-terminus",
+    value: "onegpt-deepseek-v3.1-terminus",
     label: "DeepSeek v3.1 Terminus",
     description: "DeepSeek's advanced chat LLM",
     vision: false,
@@ -1166,7 +1165,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-chat",
+    value: "onegpt-deepseek-chat",
     label: "DeepSeek v3.2",
     description: "DeepSeek's advanced chat LLM",
     vision: false,
@@ -1186,7 +1185,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-chat-think",
+    value: "onegpt-deepseek-chat-think",
     label: "DeepSeek v3.2 Thinking",
     description: "DeepSeek's advanced chat LLM with thinking",
     vision: false,
@@ -1202,7 +1201,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-chat-exp",
+    value: "onegpt-deepseek-chat-exp",
     label: "DeepSeek v3.2 Exp",
     description: "DeepSeek's advanced chat LLM",
     vision: false,
@@ -1218,7 +1217,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-chat-think-exp",
+    value: "onegpt-deepseek-chat-think-exp",
     label: "DeepSeek v3.2 Exp Thinking",
     description: "DeepSeek's advanced chat LLM with thinking",
     vision: false,
@@ -1234,7 +1233,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-r1",
+    value: "onegpt-deepseek-r1",
     label: "DeepSeek R1",
     description: "DeepSeek's advanced reasoning LLM",
     vision: false,
@@ -1250,7 +1249,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-deepseek-r1-0528",
+    value: "onegpt-deepseek-r1-0528",
     label: "DeepSeek R1 0528",
     description: "DeepSeek's advanced reasoning LLM",
     vision: false,
@@ -1266,7 +1265,7 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "scira-qwen-3.5-plus",
+    value: "onegpt-qwen-3.5-plus",
     label: "Qwen 3.5 Plus",
     description: "Alibaba's latest flagship LLM with vision and reasoning",
     vision: true,
@@ -1283,7 +1282,7 @@ export const models: Model[] = [
     provider: "alibaba",
   },
   {
-    value: "scira-qwen-3.5-flash",
+    value: "onegpt-qwen-3.5-flash",
     label: "Qwen 3.5 Flash",
     description: "Alibaba's fast vision reasoning LLM",
     vision: true,
@@ -1307,7 +1306,7 @@ export const models: Model[] = [
     },
   },
   {
-    value: "scira-kimi-k2.5",
+    value: "onegpt-kimi-k2.5",
     label: "Kimi K2.5",
     description: "MoonShot AI's latest vision-enabled LLM",
     vision: true,
@@ -1316,23 +1315,23 @@ export const models: Model[] = [
     category: "Free",
     pdf: false,
     pro: false,
-    requiresAuth: true,
+    requiresAuth: false,
     freeUnlimited: false,
     maxOutputTokens: 10000,
     isNew: true,
     provider: "moonshot",
   },
   {
-    value: "scira-minimax-m2.7",
+    value: "onegpt-minimax-m2.7",
     label: "MiniMax M2.7",
     description: "MiniMax's latest high-speed reasoning LLM",
     vision: false,
     reasoning: true,
     experimental: false,
-    category: "Pro",
+    category: "Free",
     pdf: false,
-    pro: true,
-    requiresAuth: true,
+    pro: false,
+    requiresAuth: false,
     freeUnlimited: false,
     maxOutputTokens: 10000,
     fast: true,
@@ -1345,7 +1344,7 @@ export const models: Model[] = [
     provider: "minimax",
   },
   {
-    value: "scira-minimax-m2.5",
+    value: "onegpt-minimax-m2.5",
     label: "Minimax M2.5",
     description: "Minimax's most capable reasoning LLM",
     vision: false,
@@ -1366,7 +1365,7 @@ export const models: Model[] = [
     provider: "minimax",
   },
   {
-    value: "scira-glm-4.7",
+    value: "onegpt-glm-4.7",
     label: "GLM 4.7",
     description: "Zhipu AI's latest advanced reasoning LLM",
     vision: false,
@@ -1387,7 +1386,7 @@ export const models: Model[] = [
     provider: "zhipu",
   },
   {
-    value: "scira-glm-4.7-flash",
+    value: "onegpt-glm-4.7-flash",
     label: "GLM 4.7 Flash",
     description: "Zhipu AI's latest fast vision reasoning LLM",
     vision: true,
@@ -1404,16 +1403,16 @@ export const models: Model[] = [
     provider: "zhipu",
   },
   {
-    value: "scira-glm-5",
+    value: "onegpt-glm-5",
     label: "GLM 5",
     description: "Zhipu AI's most powerful LLM",
     vision: false,
     reasoning: false,
     experimental: false,
-    category: "Pro",
+    category: "Free",
     pdf: false,
-    pro: true,
-    requiresAuth: true,
+    pro: false,
+    requiresAuth: false,
     freeUnlimited: false,
     maxOutputTokens: 20000,
     isNew: true,
@@ -1424,7 +1423,7 @@ export const models: Model[] = [
     provider: "zhipu",
   },
   {
-    value: "scira-google",
+    value: "onegpt-google",
     label: "Gemini 2.5 Flash",
     description: "Google's advanced small LLM",
     vision: true,
@@ -1441,7 +1440,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-google-think",
+    value: "onegpt-google-think",
     label: "Gemini 2.5 Flash Thinking",
     description: "Google's advanced small LLM with thinking",
     vision: true,
@@ -1458,7 +1457,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-google-pro",
+    value: "onegpt-google-pro",
     label: "Gemini 2.5 Pro",
     description: "Google's advanced LLM",
     vision: true,
@@ -1475,7 +1474,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-google-pro-think",
+    value: "onegpt-google-pro-think",
     label: "Gemini 2.5 Pro Thinking",
     description: "Google's advanced LLM with thinking",
     vision: true,
@@ -1492,7 +1491,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-gemini-3-flash",
+    value: "onegpt-gemini-3-flash",
     label: "Gemini 3 Flash",
     description: "Google's latest small SOTA LLM",
     vision: true,
@@ -1509,7 +1508,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-gemini-3-flash-think",
+    value: "onegpt-gemini-3-flash-think",
     label: "Gemini 3 Flash Thinking",
     description: "Google's latest small SOTA LLM with thinking",
     vision: true,
@@ -1526,7 +1525,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-gemini-3.1-flash-lite",
+    value: "onegpt-gemini-3.1-flash-lite",
     label: "Gemini 3.1 Flash Lite",
     description: "Google's newest lightweight flash LLM",
     vision: true,
@@ -1544,7 +1543,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-gemini-3.1-flash-lite-think",
+    value: "onegpt-gemini-3.1-flash-lite-think",
     label: "Gemini 3.1 Flash Lite Thinking",
     description: "Google's newest lightweight flash LLM with thinking",
     vision: true,
@@ -1562,7 +1561,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-gemini-3.1-pro",
+    value: "onegpt-gemini-3.1-pro",
     label: "Gemini 3.1 Pro",
     description: "Google's newest SOTA LLM",
     vision: true,
@@ -1580,7 +1579,7 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "scira-anthropic-sonnet-4.6",
+    value: "onegpt-anthropic-sonnet-4.6",
     label: "Claude Sonnet 4.6",
     description: "Anthropic's latest Sonnet LLM",
     vision: true,
@@ -1597,7 +1596,7 @@ export const models: Model[] = [
     provider: "anthropic",
   },
   {
-    value: "scira-anthropic-opus-4.6",
+    value: "onegpt-anthropic-opus-4.6",
     label: "Claude 4.6 Opus",
     description: "Anthropic's most advanced LLM",
     vision: true,
@@ -1614,7 +1613,7 @@ export const models: Model[] = [
     provider: "anthropic",
   },
   {
-    value: "scira-mimo-v2-flash",
+    value: "onegpt-mimo-v2-flash",
     label: "Mimo V2 Flash",
     description:
       "Xiaomi's fast Mimo V2 Flash model via OpenRouter (thinking disabled)",
@@ -1631,7 +1630,7 @@ export const models: Model[] = [
     provider: "xiaomi",
   },
   {
-    value: "scira-mimo-v2-pro",
+    value: "onegpt-mimo-v2-pro",
     label: "Mimo V2 Pro",
     description: "Xiaomi's advanced Mimo V2 Pro model",
     vision: false,
@@ -1647,7 +1646,7 @@ export const models: Model[] = [
     provider: "xiaomi",
   },
   {
-    value: "scira-nova-2-lite",
+    value: "onegpt-nova-2-lite",
     label: "Nova 2 Lite",
     description: "Amazon's latest and smallest LLM",
     vision: false,
@@ -1663,7 +1662,7 @@ export const models: Model[] = [
     provider: "amazon",
   },
   {
-    value: "scira-v0-10",
+    value: "onegpt-v0-10",
     label: "Vercel v0 1.0",
     description: "Vercel's v0 1.0 model",
     vision: true,
@@ -1679,7 +1678,7 @@ export const models: Model[] = [
     provider: "vercel",
   },
   {
-    value: "scira-v0-15",
+    value: "onegpt-v0-15",
     label: "Vercel v0 1.5",
     description: "Vercel's v0 1.5 model",
     vision: true,
@@ -1695,7 +1694,7 @@ export const models: Model[] = [
     provider: "vercel",
   },
   {
-    value: "scira-step-3.5-flash",
+    value: "onegpt-step-3.5-flash",
     label: "Step 3.5 Flash",
     description: "StepFun's fast and efficient LLM",
     vision: false,
@@ -1712,7 +1711,7 @@ export const models: Model[] = [
     provider: "stepfun",
   },
   {
-    value: "scira-mercury-2",
+    value: "onegpt-mercury-2",
     label: "Mercury 2",
     description: "Inception's diffusion-based language model",
     vision: false,
@@ -1729,7 +1728,6 @@ export const models: Model[] = [
     provider: "inception",
   },
 ];
-
 
 // ---------------------------------------------------------------------------
 // Helper functions for model access checks
@@ -1799,22 +1797,22 @@ export function canUseModel(
   const model = getModelConfig(modelValue);
 
   if (!model) {
-    return { canUse: false, reason: 'Model not found' };
+    return { canUse: false, reason: "Model not found" };
   }
 
   // Check if model requires authentication
   if (model.requiresAuth && !user) {
-    return { canUse: false, reason: 'authentication_required' };
+    return { canUse: false, reason: "authentication_required" };
   }
 
   // Check if model requires Max subscription
   if (model.max && !isMaxUser) {
-    return { canUse: false, reason: 'max_subscription_required' };
+    return { canUse: false, reason: "max_subscription_required" };
   }
 
   // Check if model requires Pro subscription (Max is a superset of Pro)
   if (model.pro && !isProUser && !isMaxUser) {
-    return { canUse: false, reason: 'pro_subscription_required' };
+    return { canUse: false, reason: "pro_subscription_required" };
   }
 
   return { canUse: true };
@@ -1830,7 +1828,7 @@ export function shouldBypassRateLimits(modelValue: string): boolean {
 export function getAcceptedFileTypes(modelValue: string): string {
   const model = getModelConfig(modelValue);
   // Document file types for file_query_search tool - available for ALL models
-  const documentTypes = '.csv,.xlsx,.xls,.docx';
+  const documentTypes = ".csv,.xlsx,.xls,.docx";
 
   // Vision models get images + documents, PDF models also get PDFs
   if (model?.vision) {
@@ -1866,41 +1864,44 @@ export function supportsCanvasMode(_modelValue: string): boolean {
 // ---------------------------------------------------------------------------
 
 // Restricted regions for OpenAI and Anthropic models
-const RESTRICTED_REGIONS = ['CN', 'KP', 'RU']; // China, North Korea, Russia
+const RESTRICTED_REGIONS = ["CN", "KP", "RU"]; // China, North Korea, Russia
 
 // Models that should be filtered in restricted regions
 const OPENAI_MODELS = [
-  'scira-gpt-4.1',
-  'scira-gpt-4.1-mini',
-  'scira-gpt-4.1-nano',
-  'scira-gpt5',
-  'scira-gpt5-mini',
-  'scira-gpt5-nano',
-  'scira-gpt5-medium',
-  'scira-gpt5-codex',
-  'scira-gpt-5.1',
-  'scira-gpt-5.1-codex',
-  'scira-gpt-5.1-codex-mini',
-  'scira-gpt-5.1-codex-max',
-  'scira-gpt-5.1-thinking',
-  'scira-gpt-5.2',
-  'scira-gpt-5.4',
-  'scira-gpt-5.4-mini',
-  'scira-gpt-5.4-nano',
-  'scira-gpt-5.4-thinking',
-  'scira-gpt-5.2-thinking',
-  'scira-gpt-5.2-thinking-xhigh',
-  'scira-gpt-5.2-codex',
-  'scira-gpt-5.3-codex',
+  "onegpt-gpt-4.1",
+  "onegpt-gpt-4.1-mini",
+  "onegpt-gpt-4.1-nano",
+  "onegpt-gpt5",
+  "onegpt-gpt5-mini",
+  "onegpt-gpt5-nano",
+  "onegpt-gpt5-medium",
+  "onegpt-gpt5-codex",
+  "onegpt-gpt-5.1",
+  "onegpt-gpt-5.1-codex",
+  "onegpt-gpt-5.1-codex-mini",
+  "onegpt-gpt-5.1-codex-max",
+  "onegpt-gpt-5.1-thinking",
+  "onegpt-gpt-5.2",
+  "onegpt-gpt-5.4",
+  "onegpt-gpt-5.4-mini",
+  "onegpt-gpt-5.4-nano",
+  "onegpt-gpt-5.4-thinking",
+  "onegpt-gpt-5.2-thinking",
+  "onegpt-gpt-5.2-thinking-xhigh",
+  "onegpt-gpt-5.2-codex",
+  "onegpt-gpt-5.3-codex",
 ];
 
 const ANTHROPIC_MODELS = [
-  'scira-anthropic-sonnet-4.6',
-  'scira-anthropic-opus-4.6',
+  "onegpt-anthropic-sonnet-4.6",
+  "onegpt-anthropic-opus-4.6",
 ];
 
 // Check if a model should be filtered based on region
-export function isModelRestrictedInRegion(modelValue: string, countryCode?: string): boolean {
+export function isModelRestrictedInRegion(
+  modelValue: string,
+  countryCode?: string,
+): boolean {
   if (!countryCode) return false;
 
   const isRestricted = RESTRICTED_REGIONS.includes(countryCode.toUpperCase());
@@ -1918,137 +1919,157 @@ export function getFilteredModels(countryCode?: string): Model[] {
     return models;
   }
 
-  return models.filter((model) => !isModelRestrictedInRegion(model.value, countryCode));
+  return models.filter(
+    (model) => !isModelRestrictedInRegion(model.value, countryCode),
+  );
 }
 
 // Legacy arrays for backward compatibility (deprecated - use helper functions instead)
-export const authRequiredModels = models.filter((m) => m.requiresAuth).map((m) => m.value);
-export const proRequiredModels = models.filter((m) => m.pro).map((m) => m.value);
-export const freeUnlimitedModels = models.filter((m) => m.freeUnlimited).map((m) => m.value);
+export const authRequiredModels = models
+  .filter((m) => m.requiresAuth)
+  .map((m) => m.value);
+export const proRequiredModels = models
+  .filter((m) => m.pro)
+  .map((m) => m.value);
+export const freeUnlimitedModels = models
+  .filter((m) => m.freeUnlimited)
+  .map((m) => m.value);
 
 // Helper function to derive provider from model value/label patterns
-export function getModelProvider(modelValue: string, label?: string): ModelProvider {
+export function getModelProvider(
+  modelValue: string,
+  label?: string,
+): ModelProvider {
   const value = modelValue.toLowerCase();
-  const modelLabel = (label || '').toLowerCase();
+  const modelLabel = (label || "").toLowerCase();
 
   // xAI (Grok)
   if (
-    value.includes('grok') ||
-    value.includes('scira-default') ||
-    (value.includes('scira-code') && !value.includes('codex'))
+    value.includes("grok") ||
+    value.includes("onegpt-default") ||
+    (value.includes("onegpt-code") && !value.includes("codex"))
   ) {
-    return 'xai';
+    return "xai";
   }
 
   // OpenAI (GPT, o3, o4)
-  if (value.includes('gpt') || value.includes('scira-o3') || value.includes('scira-o4')) {
-    return 'openai';
+  if (
+    value.includes("gpt") ||
+    value.includes("onegpt-o3") ||
+    value.includes("onegpt-o4")
+  ) {
+    return "openai";
   }
 
   // Anthropic (Claude)
-  if (value.includes('anthropic') || value.includes('haiku') || modelLabel.includes('claude')) {
-    return 'anthropic';
+  if (
+    value.includes("anthropic") ||
+    value.includes("haiku") ||
+    modelLabel.includes("claude")
+  ) {
+    return "anthropic";
   }
 
   // Google (Gemini)
-  if (value.includes('google') || value.includes('gemini')) {
-    return 'google';
+  if (value.includes("google") || value.includes("gemini")) {
+    return "google";
   }
 
   // Alibaba (Qwen)
-  if (value.includes('qwen')) {
-    return 'alibaba';
+  if (value.includes("qwen")) {
+    return "alibaba";
   }
 
   // Mistral (Mistral, Ministral, Magistral, Devstral, Leanstral)
   if (
-    value.includes('mistral') ||
-    value.includes('ministral') ||
-    value.includes('magistral') ||
-    value.includes('devstral') ||
-    value.includes('leanstral')
+    value.includes("mistral") ||
+    value.includes("ministral") ||
+    value.includes("magistral") ||
+    value.includes("devstral") ||
+    value.includes("leanstral")
   ) {
-    return 'mistral';
+    return "mistral";
   }
 
   // DeepSeek
-  if (value.includes('deepseek')) {
-    return 'deepseek';
+  if (value.includes("deepseek")) {
+    return "deepseek";
   }
 
   // Zhipu (GLM)
-  if (value.includes('glm')) {
-    return 'zhipu';
+  if (value.includes("glm")) {
+    return "zhipu";
   }
 
   // Cohere (Command)
-  if (value.includes('cmd') || modelLabel.includes('command')) {
-    return 'cohere';
+  if (value.includes("cmd") || modelLabel.includes("command")) {
+    return "cohere";
   }
 
   // MoonShot (Kimi)
-  if (value.includes('kimi')) {
-    return 'moonshot';
+  if (value.includes("kimi")) {
+    return "moonshot";
   }
 
   // Minimax
-  if (value.includes('minimax')) {
-    return 'minimax';
+  if (value.includes("minimax")) {
+    return "minimax";
   }
 
   // ByteDance (Seed)
-  if (value.includes('seed')) {
-    return 'bytedance';
+  if (value.includes("seed")) {
+    return "bytedance";
   }
 
   // Arcee (Trinity)
-  if (value.includes('trinity')) {
-    return 'arcee';
+  if (value.includes("trinity")) {
+    return "arcee";
   }
 
   // Vercel (v0)
-  if (value.includes('v0')) {
-    return 'vercel';
+  if (value.includes("v0")) {
+    return "vercel";
   }
 
   // Amazon (Nova)
-  if (value.includes('nova')) {
-    return 'amazon';
+  if (value.includes("nova")) {
+    return "amazon";
   }
 
   // Xiaomi (Mimo)
-  if (value.includes('mimo')) {
-    return 'xiaomi';
+  if (value.includes("mimo")) {
+    return "xiaomi";
   }
 
   // Kwaipilot (KAT)
-  if (value.includes('kat')) {
-    return 'kwaipilot';
+  if (value.includes("kat")) {
+    return "kwaipilot";
   }
 
   // StepFun (Step)
-  if (value.includes('step')) {
-    return 'stepfun';
+  if (value.includes("step")) {
+    return "stepfun";
   }
 
   // Sarvam
-  if (value.includes('sarvam')) {
-    return 'sarvam';
+  if (value.includes("sarvam")) {
+    return "sarvam";
   }
 
   // Inception (Mercury)
-  if (value.includes('mercury')) {
-    return 'inception';
+  if (value.includes("mercury")) {
+    return "inception";
   }
 
   // Default fallback
-  return 'openai';
+  return "openai";
 }
 
 // Get provider info for a model
 export function getModelProviderInfo(modelValue: string): ProviderInfo {
   const model = getModelConfig(modelValue);
-  const provider = model?.provider || getModelProvider(modelValue, model?.label);
+  const provider =
+    model?.provider || getModelProvider(modelValue, model?.label);
   return PROVIDERS[provider];
 }
 
@@ -2056,7 +2077,8 @@ export function getModelProviderInfo(modelValue: string): ProviderInfo {
 export function getActiveProviders(): ProviderInfo[] {
   const providerSet = new Set<ModelProvider>();
   for (const model of models) {
-    const provider = model.provider || getModelProvider(model.value, model.label);
+    const provider =
+      model.provider || getModelProvider(model.value, model.label);
     providerSet.add(provider);
   }
   return Array.from(providerSet).map((p) => PROVIDERS[p]);

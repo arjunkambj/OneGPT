@@ -109,7 +109,7 @@ export const upsertFromStackWebhook = internalMutation({
     const email = args.email.trim().toLowerCase();
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("BystackId", (q) => q.eq("stackId", args.stackId))
+      .withIndex("by_stackId", (q) => q.eq("stackId", args.stackId))
       .first();
 
     if (existingUser) {
@@ -144,7 +144,7 @@ export const deleteFromStackWebhook = internalMutation({
   handler: async (ctx, args) => {
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("BystackId", (q) => q.eq("stackId", args.stackId))
+      .withIndex("by_stackId", (q) => q.eq("stackId", args.stackId))
       .first();
 
     if (!existingUser) {

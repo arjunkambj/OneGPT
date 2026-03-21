@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { getCurrentUser, requireCurrentUser } from "./lib/users";
 
 // ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ export const getUserPreferences = query({
     if (!user) return null;
     return await ctx.db
       .query("userPreferences")
-      .withIndex("ByUserId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
   },
 });
@@ -29,7 +29,7 @@ export const saveUserPreferences = mutation({
     const user = await requireCurrentUser(ctx);
     const existing = await ctx.db
       .query("userPreferences")
-      .withIndex("ByUserId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
 
     if (existing) {

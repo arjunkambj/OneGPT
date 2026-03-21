@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React, { useMemo, useRef, useEffect } from 'react';
-import { Message } from '@/components/chat/message';
-import type { ChatMessage } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Icon } from '@iconify/react';
+import React, { useMemo, useRef, useEffect } from "react";
+import { Message } from "@/components/chat/message";
+import type { ChatMessage } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@iconify/react";
 
 interface MessagesProps {
   messages: ChatMessage[];
@@ -26,8 +26,8 @@ const Messages: React.FC<MessagesProps> = ({
 
   const filteredMessages = useMemo(() => {
     return messages.filter((message) => {
-      if (message.role === 'user') return true;
-      if (message.role === 'assistant') {
+      if (message.role === "user") return true;
+      if (message.role === "assistant") {
         return message.parts && message.parts.length > 0;
       }
       return false;
@@ -35,7 +35,7 @@ const Messages: React.FC<MessagesProps> = ({
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -52,8 +52,8 @@ const Messages: React.FC<MessagesProps> = ({
       setShowScrollButton(!isNearBottom);
     };
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -80,9 +80,9 @@ const Messages: React.FC<MessagesProps> = ({
 
         {suggestedQuestions.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
-            {suggestedQuestions.map((question, i) => (
+            {suggestedQuestions.map((question) => (
               <Button
-                key={i}
+                key={question}
                 variant="outline"
                 size="sm"
                 className="text-xs h-auto py-1.5 px-3 rounded-full"

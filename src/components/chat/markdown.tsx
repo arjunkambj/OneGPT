@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback } from 'react';
-import ReactMarkdown, { type Components } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { Icon } from '@iconify/react';
-import { cn } from '@/lib/utils';
+import React, { useState, useCallback } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Icon } from "@iconify/react";
+import { cn } from "@/lib/utils";
 
 interface MarkdownProps {
   content: string;
@@ -37,9 +37,9 @@ function CopyButton({ text }: { text: string }) {
 
 const components: Components = {
   code({ className, children, ...props }) {
-    const match = /language-(\w+)/.exec(className || '');
+    const match = /language-(\w+)/.exec(className || "");
     const isInline = !match && !className;
-    const codeString = String(children).replace(/\n$/, '');
+    const codeString = String(children).replace(/\n$/, "");
 
     if (isInline) {
       return (
@@ -56,13 +56,13 @@ const components: Components = {
       <div className="relative group my-4">
         <div className="flex items-center justify-between px-4 py-2 bg-muted/50 border border-border rounded-t-lg">
           <span className="text-xs font-mono text-muted-foreground">
-            {match?.[1] || 'text'}
+            {match?.[1] || "text"}
           </span>
         </div>
         <div className="relative">
           <CopyButton text={codeString} />
           <pre className="overflow-x-auto p-4 bg-muted/30 border border-t-0 border-border rounded-b-lg">
-            <code className={cn('text-sm font-mono', className)} {...props}>
+            <code className={cn("text-sm font-mono", className)} {...props}>
               {children}
             </code>
           </pre>
@@ -139,7 +139,10 @@ const components: Components = {
 
   ol({ children, ...props }) {
     return (
-      <ol className="my-2 ml-6 list-decimal space-y-1 text-foreground" {...props}>
+      <ol
+        className="my-2 ml-6 list-decimal space-y-1 text-foreground"
+        {...props}
+      >
         {children}
       </ol>
     );
@@ -163,7 +166,10 @@ const components: Components = {
 
   h2({ children, ...props }) {
     return (
-      <h2 className="mt-5 mb-2 text-xl font-semibold text-foreground" {...props}>
+      <h2
+        className="mt-5 mb-2 text-xl font-semibold text-foreground"
+        {...props}
+      >
         {children}
       </h2>
     );
@@ -171,7 +177,10 @@ const components: Components = {
 
   h3({ children, ...props }) {
     return (
-      <h3 className="mt-4 mb-2 text-lg font-semibold text-foreground" {...props}>
+      <h3
+        className="mt-4 mb-2 text-lg font-semibold text-foreground"
+        {...props}
+      >
         {children}
       </h3>
     );
@@ -179,7 +188,10 @@ const components: Components = {
 
   h4({ children, ...props }) {
     return (
-      <h4 className="mt-3 mb-1 text-base font-semibold text-foreground" {...props}>
+      <h4
+        className="mt-3 mb-1 text-base font-semibold text-foreground"
+        {...props}
+      >
         {children}
       </h4>
     );

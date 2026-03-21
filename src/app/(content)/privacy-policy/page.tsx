@@ -25,11 +25,26 @@ const policySections = [
       "When you use OneGPT, we may collect the following types of information:",
     ],
     items: [
-      { bold: "Chat Messages:", text: "The prompts and conversations you submit to AI models through our platform." },
-      { bold: "Account Information:", text: "Your email address and profile details when you create an account via our authentication provider." },
-      { bold: "Usage Data:", text: "How you interact with the service, including which models you use, feature usage, and session activity." },
-      { bold: "Device Information:", text: "Browser type, operating system, IP address, and general device characteristics." },
-      { bold: "Subscription Data:", text: "Your plan tier and billing history (but never your payment card details)." },
+      {
+        bold: "Chat Messages:",
+        text: "The prompts and conversations you submit to AI models through our platform.",
+      },
+      {
+        bold: "Account Information:",
+        text: "Your email address and profile details when you create an account via our authentication provider.",
+      },
+      {
+        bold: "Usage Data:",
+        text: "How you interact with the service, including which models you use, feature usage, and session activity.",
+      },
+      {
+        bold: "Device Information:",
+        text: "Browser type, operating system, IP address, and general device characteristics.",
+      },
+      {
+        bold: "Subscription Data:",
+        text: "Your plan tier and billing history (but never your payment card details).",
+      },
     ],
     afterItems: [
       "Important: OneGPT does not collect, store, or process any payment card numbers, bank details, or other sensitive financial data. All payment processing is handled directly by DodoPayments.",
@@ -57,11 +72,26 @@ const policySections = [
       "We share your data only when necessary to provide the service:",
     ],
     items: [
-      { bold: "AI Model Providers:", text: "Your chat messages are sent to the AI provider you select (OpenAI, Anthropic, Google, DeepSeek, Mistral, xAI, and others) for processing. Each provider has its own data handling policies." },
-      { bold: "Infrastructure:", text: "We use Vercel for hosting and Convex for our backend database." },
-      { bold: "Authentication:", text: "Account sign-in is managed through Stack Auth." },
-      { bold: "Payments:", text: "DodoPayments handles all billing and subscription transactions." },
-      { bold: "Legal Requirements:", text: "We may disclose data if required by law, regulation, or valid legal process." },
+      {
+        bold: "AI Model Providers:",
+        text: "Your chat messages are sent to the AI provider you select (OpenAI, Anthropic, Google, DeepSeek, Mistral, xAI, and others) for processing. Each provider has its own data handling policies.",
+      },
+      {
+        bold: "Infrastructure:",
+        text: "We use Vercel for hosting and Convex for our backend database.",
+      },
+      {
+        bold: "Authentication:",
+        text: "Account sign-in is managed through Stack Auth.",
+      },
+      {
+        bold: "Payments:",
+        text: "DodoPayments handles all billing and subscription transactions.",
+      },
+      {
+        bold: "Legal Requirements:",
+        text: "We may disclose data if required by law, regulation, or valid legal process.",
+      },
     ],
   },
   {
@@ -147,8 +177,8 @@ export default function PrivacyPolicyPage() {
                 <span>Last updated: March 21, 2026</span>
                 <span className="w-px h-3 bg-border/50" />
                 <span className="flex items-center gap-1.5">
-                  <Icon icon="solar:clock-circle-linear" className="w-3 h-3" />
-                  5 min read
+                  <Icon icon="solar:clock-circle-linear" className="w-3 h-3" />5
+                  min read
                 </span>
               </div>
             </div>

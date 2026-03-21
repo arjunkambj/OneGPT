@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -12,14 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
-
 import { models, PROVIDERS, getModelProvider } from "@/constant/ai-model";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
+import { isSupportedModel } from "@/lib/ai/model-routing";
+import { cn } from "@/lib/utils";
 import { useCustomInstructions } from "@/hooks/use-custom-instructions";
 
 const themes = [
@@ -59,19 +58,31 @@ export function PreferencesSection() {
     setInstructionsEnabled(isEnabled);
   }, [isEnabled]);
 
-  const selectedModel = defaultModel ?? models[0]?.value ?? "";
-
-  const groupedModels = models.reduce<Record<string, typeof models>>(
-    (acc, model) => {
-      const provider =
-        model.provider || getModelProvider(model.value, model.label);
-      const providerName = PROVIDERS[provider]?.name ?? provider;
-      if (!acc[providerName]) acc[providerName] = [];
-      acc[providerName].push(model);
-      return acc;
-    },
-    {},
+  const supportedModels = useMemo(
+    () => models.filter((model) => isSupportedModel(model.value)),
+    [],
   );
+
+  const groupedModels = useMemo(
+    () =>
+      supportedModels.reduce<Record<string, typeof supportedModels>>(
+        (acc, model) => {
+          const provider =
+            model.provider || getModelProvider(model.value, model.label);
+          const providerName = PROVIDERS[provider]?.name ?? provider;
+          if (!acc[providerName]) acc[providerName] = [];
+          acc[providerName].push(model);
+          return acc;
+        },
+        {},
+      ),
+    [supportedModels],
+  );
+
+  const selectedModel =
+    defaultModel && isSupportedModel(defaultModel)
+      ? defaultModel
+      : supportedModels[0]?.value ?? "onegpt-default";
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -92,6 +103,11 @@ export function PreferencesSection() {
   };
 
   const handleModelChange = async (model: string) => {
+    if (!isSupportedModel(model)) {
+      toast.error("That model is no longer available");
+      return;
+    }
+
     try {
       await saveDefaultModel(model);
       toast.success("Default model updated");
@@ -99,6 +115,18 @@ export function PreferencesSection() {
       toast.error("Failed to save model preference");
     }
   };
+
+  useEffect(() => {
+    if (!defaultModel || isSupportedModel(defaultModel)) return;
+
+    void (async () => {
+      try {
+        await saveDefaultModel(selectedModel);
+      } catch {
+        console.error("Failed to repair unsupported default model");
+      }
+    })();
+  }, [defaultModel, saveDefaultModel, selectedModel]);
 
   return (
     <div className="space-y-6">

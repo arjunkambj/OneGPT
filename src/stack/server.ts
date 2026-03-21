@@ -10,5 +10,5 @@ export const stackServerApp = new StackServerApp({
     afterSignIn: "/",
     afterSignUp: "/sign-in",
     afterSignOut: "/",
-    },
-  });
+  },
+});

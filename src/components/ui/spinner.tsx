@@ -7,11 +7,7 @@ type SpinnerProps = Omit<
   "icon"
 >;
 
-function Spinner({
-  className,
-  strokeWidth = 2,
-  ...props
-}: SpinnerProps) {
+function Spinner({ className, strokeWidth = 2, ...props }: SpinnerProps) {
   return (
     <HugeiconsIcon
       icon={Loading03Icon}

@@ -1,39 +1,12 @@
+// biome-ignore-all lint/a11y/noSvgWithoutTitle: provider icons in this selector are decorative.
 "use client";
 
-import React, {
-  useMemo,
-  useCallback,
-  useState,
-  useRef,
-  useEffect,
-} from "react";
-import { cn } from "@/lib/utils";
-import {
-  models,
-  PROVIDERS,
-  getFilteredModels,
-  getModelProvider,
-  requiresAuthentication,
-  requiresProSubscription,
-  requiresMaxSubscription,
-  type ModelProvider,
-} from "@/constant/ai-model";
-import { Eye, Brain, FilePdf, Lock as LockIcon } from "@phosphor-icons/react";
 import { Icon } from "@iconify/react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useFavoriteModels } from "@/hooks/use-favorite-models";
+import { Brain, Eye, FilePdf, Lock as LockIcon } from "@phosphor-icons/react";
+import type React from "react";
+import type { SVGProps } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Drawer,
   DrawerContent,
@@ -41,7 +14,34 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import type { SVGProps } from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  getFilteredModels,
+  getModelProvider,
+  type ModelProvider,
+  type models,
+  PROVIDERS,
+  requiresAuthentication,
+  requiresMaxSubscription,
+  requiresProSubscription,
+} from "@/constant/ai-model";
+import { useFavoriteModels } from "@/hooks/use-favorite-models";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  isSupportedModel,
+  SUPPORTED_MODEL_VALUES,
+} from "@/lib/ai/model-routing";
+import { cn } from "@/lib/utils";
 
 // ─── NVIDIA standalone SVG ────────────────────────────────────────────────────
 const NVIDIA = (props: SVGProps<SVGSVGElement>) => (
@@ -74,7 +74,7 @@ const ProviderIcon = ({
   };
 
   switch (provider) {
-    case "scira":
+    case "onegpt":
       return <Icon icon="solar:widget-2-linear" {...iconProps} />;
     case "sarvam":
       return (
@@ -359,7 +359,7 @@ const ProviderIcon = ({
   }
 };
 
-// ─── Sort helper (matches scira) ──────────────────────────────────────────────
+// ─── Sort helper (matches onegpt) ──────────────────────────────────────────────
 function sortModelsForList(
   modelsToShow: Array<(typeof models)[0]>,
   options: { user?: unknown; isProUser: boolean; isMaxUser: boolean },
@@ -381,8 +381,7 @@ function sortModelsForList(
     }
 
     if (shouldSortFreeFirst) {
-      const needsAuth =
-        requiresAuthentication(model.value) && !options.user;
+      const needsAuth = requiresAuthentication(model.value) && !options.user;
       const needsPro =
         requiresProSubscription(model.value) &&
         !options.isProUser &&
@@ -417,7 +416,6 @@ interface ModelSelectorProps {
   onClose?: () => void;
 }
 
-
 // ─── Provider & generation filter ─────────────────────────────────────────────
 const ALLOWED_PROVIDERS = new Set<ModelProvider>([
   "openai",
@@ -435,61 +433,62 @@ const ALLOWED_PROVIDERS = new Set<ModelProvider>([
 /** Old-generation models to hide (latest 2 generations kept per provider). */
 const EXCLUDED_MODELS = new Set([
   // OpenAI – keep GPT 5.4 + o-series only
-  "scira-gpt-oss-20",
-  "scira-gpt-oss-120",
-  "scira-gpt5-nano",
-  "scira-gpt-4.1-nano",
-  "scira-gpt-4.1-mini",
-  "scira-gpt-4.1",
-  "scira-gpt-5.1",
-  "scira-gpt-5.1-thinking",
-  "scira-gpt-5.2",
-  "scira-gpt-5.2-thinking",
-  "scira-gpt-5.2-thinking-xhigh",
-  "scira-gpt-5.3-chat-latest",
-  "scira-gpt5-mini",
-  "scira-gpt5",
-  "scira-gpt5-medium",
-  "scira-gpt5-codex",
-  "scira-gpt-5.1-codex",
-  "scira-gpt-5.1-codex-mini",
-  "scira-gpt-5.1-codex-max",
-  "scira-gpt-5.2-codex",
-  "scira-gpt-5.3-codex",
+  "onegpt-gpt-oss-20",
+  "onegpt-gpt-oss-120",
+  "onegpt-gpt5-nano",
+  "onegpt-gpt-4.1-nano",
+  "onegpt-gpt-4.1-mini",
+  "onegpt-gpt-4.1",
+  "onegpt-gpt-5.1",
+  "onegpt-gpt-5.1-thinking",
+  "onegpt-gpt-5.2",
+  "onegpt-gpt-5.2-thinking",
+  "onegpt-gpt-5.2-thinking-xhigh",
+  "onegpt-gpt-5.3-chat-latest",
+  "onegpt-gpt5-mini",
+  "onegpt-gpt5",
+  "onegpt-gpt5-medium",
+  "onegpt-gpt5-codex",
+  "onegpt-gpt-5.1-codex",
+  "onegpt-gpt-5.1-codex-mini",
+  "onegpt-gpt-5.1-codex-max",
+  "onegpt-gpt-5.2-codex",
+  "onegpt-gpt-5.3-codex",
   // Google – keep Gemini 3.1 + 3 only
-  "scira-google-lite",
-  "scira-google",
-  "scira-google-think",
-  "scira-google-pro",
-  "scira-google-pro-think",
+  "onegpt-google-lite",
+  "onegpt-google",
+  "onegpt-google-think",
+  "onegpt-google-pro",
+  "onegpt-google-pro-think",
   // xAI – keep Grok 4.20 + 4.1 only
-  "scira-grok-3-mini",
-  "scira-grok-3",
-  "scira-grok-4",
-  "scira-grok-4-fast",
-  "scira-grok-4-fast-think",
-  "scira-code",
+  "onegpt-grok-3-mini",
+  "onegpt-grok-3",
+  "onegpt-grok-4",
+  "onegpt-grok-4-fast",
+  "onegpt-grok-4-fast-think",
+  "onegpt-code",
   // Zhipu – keep GLM 5 + 4.7 only
-  "scira-glm-4.6",
-  "scira-glm-4.6v-flash",
-  "scira-glm-4.6v",
-  "scira-glm-air",
-  "scira-glm",
+  "onegpt-glm-4.6",
+  "onegpt-glm-4.6v-flash",
+  "onegpt-glm-4.6v",
+  "onegpt-glm-air",
+  "onegpt-glm",
   // DeepSeek – keep v3.2 + R1 only
-  "scira-deepseek-v3",
-  "scira-deepseek-v3.1-terminus",
+  "onegpt-deepseek-v3",
+  "onegpt-deepseek-v3.1-terminus",
   // Mistral – keep Large 3 + Magistral Medium only
-  "scira-ministral-3b",
-  "scira-ministral-8b",
-  "scira-ministral-14b",
-  "scira-devstral",
-  "scira-devstral-small",
-  "scira-mistral-medium",
-  "scira-magistral-small",
-  "scira-mistral-small",
-  "scira-mistral-small-think",
-  "scira-leanstral",
+  "onegpt-ministral-3b",
+  "onegpt-ministral-8b",
+  "onegpt-ministral-14b",
+  "onegpt-devstral",
+  "onegpt-devstral-small",
+  "onegpt-mistral-medium",
+  "onegpt-magistral-small",
+  "onegpt-mistral-small",
+  "onegpt-mistral-small-think",
+  "onegpt-leanstral",
 ]);
+const SUPPORTED_MODELS = new Set(SUPPORTED_MODEL_VALUES);
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function ModelSelector({
   selectedModel,
@@ -540,12 +539,18 @@ export function ModelSelector({
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [setOpen]);
 
   // Get filtered models – only allowed providers, latest 2 generations
   const availableModels = useMemo(() => {
     const filtered = getFilteredModels();
     return filtered.filter((model) => {
+      if (
+        !SUPPORTED_MODELS.has(model.value) ||
+        !isSupportedModel(model.value)
+      ) {
+        return false;
+      }
       if (excludeModels.includes(model.value)) return false;
       if (EXCLUDED_MODELS.has(model.value)) return false;
       const provider =
@@ -623,8 +628,7 @@ export function ModelSelector({
   }, [availableModels, selectedProvider, favorites]);
 
   const sortedModelsForList = useMemo(
-    () =>
-      sortModelsForList(filteredByProvider, { user, isProUser, isMaxUser }),
+    () => sortModelsForList(filteredByProvider, { user, isProUser, isMaxUser }),
     [filteredByProvider, user, isProUser, isMaxUser],
   );
 
@@ -678,6 +682,7 @@ export function ModelSelector({
   }, [normalizeText, searchQuery, sortedModelsForList]);
 
   // Reset focused index when search query or provider changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset focus when either filter input changes.
   useEffect(() => {
     setFocusedIndex(-1);
   }, [searchQuery, selectedProvider]);
@@ -690,8 +695,7 @@ export function ModelSelector({
     } else {
       setFocusedIndex(-1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [displayModels, open, selectedModel]);
 
   // Scroll focused model into view
   useEffect(() => {
@@ -752,14 +756,10 @@ export function ModelSelector({
           e.preventDefault();
           if (focusedIndex >= 0 && focusedIndex < count) {
             const model = displayModels[focusedIndex];
-            const needsAuth =
-              requiresAuthentication(model.value) && !user;
+            const needsAuth = requiresAuthentication(model.value) && !user;
             const needsPro =
-              requiresProSubscription(model.value) &&
-              !isProUser &&
-              !isMaxUser;
-            const needsMax =
-              requiresMaxSubscription(model.value) && !isMaxUser;
+              requiresProSubscription(model.value) && !isProUser && !isMaxUser;
+            const needsMax = requiresMaxSubscription(model.value) && !isMaxUser;
             if (needsAuth || needsPro || needsMax) return;
             onModelChange(model.value);
             setOpen(false);
@@ -787,10 +787,11 @@ export function ModelSelector({
       onModelChange,
       activeProviders,
       selectedProvider,
+      setOpen,
     ],
   );
 
-  // ─── Model card renderer (matches scira) ────────────────────────────────
+  // ─── Model card renderer (matches onegpt) ────────────────────────────────
   const renderModelCard = (model: (typeof models)[0], index: number) => {
     const reqAuth = requiresAuthentication(model.value) && !user;
     const reqPro =
@@ -800,7 +801,7 @@ export function ModelSelector({
     const modelProvider =
       model.provider || getModelProvider(model.value, model.label);
     const isSelected = selectedModel === model.value;
-    const isAutoRouter = model.value === "scira-auto";
+    const isAutoRouter = model.value === "onegpt-auto";
     const isFocused = focusedIndex === index;
 
     const handleClick = () => {
@@ -815,8 +816,15 @@ export function ModelSelector({
         id={`mselector-option-${model.value}`}
         data-model-index={index}
         role="option"
+        tabIndex={isFocused ? 0 : -1}
         aria-selected={isSelected}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
         onMouseEnter={() => setFocusedIndex(index)}
         className={cn(
           "group flex items-start gap-2.5 px-2.5 py-2 rounded-lg cursor-pointer",
@@ -990,13 +998,19 @@ export function ModelSelector({
                 )}
               >
                 <Icon
-                  icon={isFavorite(model.value) ? "solar:star-bold" : "solar:star-linear"}
+                  icon={
+                    isFavorite(model.value)
+                      ? "solar:star-bold"
+                      : "solar:star-linear"
+                  }
                   className={cn(isMobile ? "size-3.5" : "size-3")}
                 />
               </button>
             </TooltipTrigger>
             <TooltipContent side="top" className="text-xs">
-              {isFavorite(model.value) ? "Remove from favorites" : "Add to favorites"}
+              {isFavorite(model.value)
+                ? "Remove from favorites"
+                : "Add to favorites"}
             </TooltipContent>
           </Tooltip>
 
@@ -1097,7 +1111,10 @@ export function ModelSelector({
           {!isMobile && showScrollIndicator && (
             <div className="absolute bottom-0 left-0 right-0 h-8 pointer-events-none flex items-end justify-center pb-1 transition-opacity duration-300">
               <div className="absolute inset-0 bg-linear-to-t from-background via-background/80 to-transparent" />
-              <Icon icon="solar:alt-arrow-down-linear" className="size-3 text-muted-foreground/60 relative z-10 animate-bounce" />
+              <Icon
+                icon="solar:alt-arrow-down-linear"
+                className="size-3 text-muted-foreground/60 relative z-10 animate-bounce"
+              />
             </div>
           )}
         </div>
@@ -1107,14 +1124,16 @@ export function ModelSelector({
           {/* Search Bar */}
           <div className="px-2 pt-2 pb-1.5 shrink-0">
             <div className="relative">
-              <Icon icon="solar:magnifer-linear" className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/50" />
+              <Icon
+                icon="solar:magnifer-linear"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/50"
+              />
               <input
                 type="text"
                 placeholder="Search models..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleModelListKeyDown}
-                autoFocus={!isMobile}
                 role="combobox"
                 aria-expanded={true}
                 aria-controls="mselector-listbox"
@@ -1137,7 +1156,12 @@ export function ModelSelector({
           {/* Provider Header */}
           {selectedProvider === "favorites" ? (
             <div className="mx-2 mb-1 px-2 py-1.5 flex items-center gap-2 rounded-md bg-secondary/30 shrink-0">
-              <Icon icon="solar:star-bold" width={13} height={13} className="text-amber-500" />
+              <Icon
+                icon="solar:star-bold"
+                width={13}
+                height={13}
+                className="text-amber-500"
+              />
               <span className="text-[11px] font-medium text-muted-foreground">
                 Favorites
               </span>
@@ -1170,7 +1194,10 @@ export function ModelSelector({
           >
             {displayModels.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
-                <Icon icon="solar:magnifer-linear" className="size-5 text-muted-foreground/30" />
+                <Icon
+                  icon="solar:magnifer-linear"
+                  className="size-5 text-muted-foreground/30"
+                />
                 <p className="text-xs text-muted-foreground/60">
                   No models found
                 </p>

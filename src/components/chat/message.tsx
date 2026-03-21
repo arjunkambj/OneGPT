@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import React, { useState, useCallback } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from '@/components/ui/tooltip';
-import { Icon } from '@iconify/react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import type { ChatMessage, MessagePart } from '@/lib/types';
-import { Markdown } from './markdown';
+} from "@/components/ui/tooltip";
+import { Icon } from "@iconify/react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import type { ChatMessage, MessagePart } from "@/lib/types";
+import { Markdown } from "./markdown";
 
 interface MessageProps {
   message: ChatMessage;
@@ -25,7 +25,7 @@ function CopyMessageButton({ text }: { text: string }) {
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success('Copied to clipboard');
+    toast.success("Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   }, [text]);
 
@@ -53,14 +53,17 @@ function CopyMessageButton({ text }: { text: string }) {
   );
 }
 
-function ReasoningSection({ reasoning, details }: {
+function ReasoningSection({
+  reasoning,
+  details,
+}: {
   reasoning: string;
   details?: { type: string; summary: string }[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const summaryText =
-    details?.map((d) => d.summary).join(', ') || 'View reasoning';
+    details?.map((d) => d.summary).join(", ") || "View reasoning";
 
   return (
     <div className="my-2">
@@ -93,7 +96,10 @@ function ErrorDisplay({ error }: { error: string }) {
       <div className="px-4 py-3 flex items-start gap-3">
         <div className="mt-0.5">
           <div className="bg-destructive/10 p-1.5 rounded-full">
-            <Icon icon="solar:danger-circle-linear" className="h-4 w-4 text-destructive" />
+            <Icon
+              icon="solar:danger-circle-linear"
+              className="h-4 w-4 text-destructive"
+            />
           </div>
         </div>
         <div className="flex-1">
@@ -107,14 +113,16 @@ function ErrorDisplay({ error }: { error: string }) {
 
 function getTextContent(parts: MessagePart[]): string {
   return parts
-    .filter((p): p is Extract<MessagePart, { type: 'text' }> => p.type === 'text')
+    .filter(
+      (p): p is Extract<MessagePart, { type: "text" }> => p.type === "text",
+    )
     .map((p) => p.text)
-    .join('')
+    .join("")
     .trim();
 }
 
 export function Message({ message, isLast }: MessageProps) {
-  if (message.role === 'user') {
+  if (message.role === "user") {
     const text = getTextContent(message.parts);
 
     return (
@@ -128,18 +136,21 @@ export function Message({ message, isLast }: MessageProps) {
         </div>
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className="bg-muted">
-            <Icon icon="solar:user-linear" className="h-4 w-4 text-muted-foreground" />
+            <Icon
+              icon="solar:user-linear"
+              className="h-4 w-4 text-muted-foreground"
+            />
           </AvatarFallback>
         </Avatar>
       </div>
     );
   }
 
-  if (message.role === 'assistant') {
+  if (message.role === "assistant") {
     const textContent = getTextContent(message.parts);
 
     return (
-      <div className={cn('flex items-start gap-3', isLast && 'min-h-[200px]')}>
+      <div className={cn("group/message flex items-start gap-3", isLast && "min-h-[200px]")}>
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className="bg-primary/10">
             <Icon icon="solar:bot-linear" className="h-4 w-4 text-primary" />
@@ -149,7 +160,7 @@ export function Message({ message, isLast }: MessageProps) {
           {message.parts.map((part, index) => {
             const key = `${message.id}-part-${index}`;
 
-            if (part.type === 'reasoning') {
+            if (part.type === "reasoning") {
               return (
                 <ReasoningSection
                   key={key}
@@ -159,7 +170,7 @@ export function Message({ message, isLast }: MessageProps) {
               );
             }
 
-            if (part.type === 'text' && part.text.trim()) {
+            if (part.type === "text" && part.text.trim()) {
               return (
                 <div key={key}>
                   <Markdown content={part.text} />
@@ -167,7 +178,7 @@ export function Message({ message, isLast }: MessageProps) {
               );
             }
 
-            if (part.type === 'error') {
+            if (part.type === "error") {
               return <ErrorDisplay key={key} error={part.error} />;
             }
 

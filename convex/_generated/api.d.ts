@@ -8,10 +8,12 @@
  * @module
  */
 
+import type * as chats from "../chats.js";
 import type * as customInstructions from "../customInstructions.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_users from "../lib/users.js";
+import type * as messages from "../messages.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as usage from "../usage.js";
 import type * as userPreferences from "../userPreferences.js";
@@ -24,10 +26,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  chats: typeof chats;
   customInstructions: typeof customInstructions;
   http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/users": typeof lib_users;
+  messages: typeof messages;
   subscriptions: typeof subscriptions;
   usage: typeof usage;
   userPreferences: typeof userPreferences;

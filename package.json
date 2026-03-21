@@ -11,9 +11,11 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.136",
     "@hugeicons/core-free-icons": "^4.0.0",
     "@hugeicons/react": "^1.1.6",
     "@iconify/react": "^6.0.2",
+    "@openrouter/ai-sdk-provider": "^2.3.3",
     "@phosphor-icons/react": "^2.1.10",
     "@stackframe/stack": "^2.8.77",
     "ai": "^6.0.134",

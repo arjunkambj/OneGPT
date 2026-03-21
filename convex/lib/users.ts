@@ -1,5 +1,5 @@
-import type { QueryCtx, MutationCtx } from "../_generated/server";
-import { requireAuth } from "./auth";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { getAuth, requireAuth } from "./auth";
 
 /**
  * Resolves the currently authenticated user from the Convex `users` table.
@@ -13,12 +13,16 @@ import { requireAuth } from "./auth";
 export async function getCurrentUser(
   ctx: Pick<QueryCtx | MutationCtx, "auth" | "db">,
 ) {
-  const identity = await requireAuth(ctx);
+  const identity = await getAuth(ctx);
+  if (!identity) return null;
+
   // tokenIdentifier format: "{issuer}|{subject}" — subject is the Stack user ID
-  const stackId = identity.tokenIdentifier.split("|").pop()!;
+  const stackId = identity.tokenIdentifier.split("|").pop();
+  if (!stackId) return null;
+
   return await ctx.db
     .query("users")
-    .withIndex("BystackId", (q) => q.eq("stackId", stackId))
+    .withIndex("by_stackId", (q) => q.eq("stackId", stackId))
     .first();
 }
 
@@ -29,6 +33,7 @@ export async function getCurrentUser(
 export async function requireCurrentUser(
   ctx: Pick<QueryCtx | MutationCtx, "auth" | "db">,
 ) {
+  await requireAuth(ctx);
   const user = await getCurrentUser(ctx);
   if (!user) throw new Error("User not found in database");
   return user;

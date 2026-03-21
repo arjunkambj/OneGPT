@@ -19,7 +19,11 @@ export function LegalHeader({ currentPage }: LegalHeaderProps) {
         <div className="flex items-center justify-between h-14 px-6">
           <Link href="/" className="flex items-center gap-2.5 group">
             <img src="/Black.svg" alt="OneGPT" className="size-5 dark:hidden" />
-            <img src="/white.svg" alt="OneGPT" className="size-5 hidden dark:block" />
+            <img
+              src="/white.svg"
+              alt="OneGPT"
+              className="size-5 hidden dark:block"
+            />
             <span className="text-lg font-light tracking-tighter">OneGPT</span>
           </Link>
           <div className="flex items-center gap-4">

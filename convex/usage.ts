@@ -15,7 +15,7 @@ export const getUserUsage = query({
     const date = args.date || new Date().toISOString().split("T")[0];
     return await ctx.db
       .query("usage")
-      .withIndex("ByUserIdDate", (q) =>
+      .withIndex("by_userId_and_date", (q) =>
         q.eq("userId", user._id).eq("date", date),
       )
       .first();

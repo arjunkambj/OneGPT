@@ -4,10 +4,10 @@ import { useState, useCallback, useEffect } from "react";
 
 const STORAGE_KEY = "onegpt-favorite-models";
 const DEFAULT_FAVORITES = [
-  "scira-kimi-k2.5",
-  "scira-gpt-5.4",
-  "scira-glm-5",
-  "scira-minimax-m2.7",
+  "onegpt-kimi-k2.5",
+  "onegpt-gpt-5.4",
+  "onegpt-glm-5",
+  "onegpt-minimax-m2.7",
 ];
 
 function readFavorites(): string[] {

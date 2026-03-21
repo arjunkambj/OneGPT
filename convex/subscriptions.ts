@@ -11,7 +11,7 @@ export const getUserSubscription = query({
     if (!user) return null;
     return await ctx.db
       .query("subscriptions")
-      .withIndex("ByUserId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
   },
 });

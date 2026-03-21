@@ -78,15 +78,19 @@ const policySections = [
     id: "third-party",
     label: "Third-Party",
     title: "Third-Party Services",
-    paragraphs: [
-      "OneGPT relies on several third-party services to operate:",
-    ],
+    paragraphs: ["OneGPT relies on several third-party services to operate:"],
     items: [
-      { bold: "AI Providers:", text: "OpenAI, Anthropic, Google, DeepSeek, Mistral, xAI, and others process your chat messages" },
+      {
+        bold: "AI Providers:",
+        text: "OpenAI, Anthropic, Google, DeepSeek, Mistral, xAI, and others process your chat messages",
+      },
       { bold: "Vercel:", text: "Provides hosting and infrastructure" },
       { bold: "Convex:", text: "Powers our backend data layer" },
       { bold: "Stack Auth:", text: "Handles account authentication" },
-      { bold: "DodoPayments:", text: "Processes all billing and subscription payments" },
+      {
+        bold: "DodoPayments:",
+        text: "Processes all billing and subscription payments",
+      },
     ],
     afterItems: [
       "Each of these services operates under its own terms and privacy policies. We are not responsible for their practices or data handling beyond what we can control.",
@@ -100,9 +104,18 @@ const policySections = [
       "OneGPT offers free and paid subscription tiers. For full details, visit our Pricing page.",
     ],
     items: [
-      { bold: "Free:", text: "10 messages per day with access to basic AI models, chat history, and web search." },
-      { bold: "Pro ($15/month):", text: "Unlimited messages, all base AI models, vision support, file uploads, custom instructions, and priority support." },
-      { bold: "Max ($60/month):", text: "Everything in Pro, plus Anthropic Claude models (60 requests/week) and Gemini Pro models (80 requests/month)." },
+      {
+        bold: "Free:",
+        text: "10 messages per day with access to basic AI models, chat history, and web search.",
+      },
+      {
+        bold: "Pro ($15/month):",
+        text: "Unlimited messages, all base AI models, vision support, file uploads, custom instructions, and priority support.",
+      },
+      {
+        bold: "Max ($60/month):",
+        text: "Everything in Pro, plus Anthropic Claude models (60 requests/week) and Gemini Pro models (80 requests/month).",
+      },
     ],
     afterItems: [
       "We reserve the right to adjust pricing, model availability, or tier classifications at any time due to provider cost changes, usage patterns, or operational needs.",
@@ -179,8 +192,8 @@ export default function TermsPage() {
                 <span>Last updated: March 21, 2026</span>
                 <span className="w-px h-3 bg-border/50" />
                 <span className="flex items-center gap-1.5">
-                  <Icon icon="solar:clock-circle-linear" className="w-3 h-3" />
-                  7 min read
+                  <Icon icon="solar:clock-circle-linear" className="w-3 h-3" />7
+                  min read
                 </span>
               </div>
             </div>
@@ -210,8 +223,7 @@ export default function TermsPage() {
             <p className="text-base text-foreground/80 leading-relaxed mb-6">
               Welcome to OneGPT. These Terms of Service govern your access to
               and use of our platform. By using OneGPT, you agree to these
-              terms. If you do not agree, please discontinue use of the
-              service.
+              terms. If you do not agree, please discontinue use of the service.
             </p>
 
             {/* Sections */}

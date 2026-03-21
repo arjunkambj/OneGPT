@@ -5,7 +5,7 @@ import { v } from "convex/values";
 // Shared validators
 // =============================================================================
 
-const messagePart = v.union(
+export const messagePart = v.union(
   v.object({ type: v.literal("text"), text: v.string() }),
   v.object({
     type: v.literal("reasoning"),
@@ -29,7 +29,7 @@ const messagePart = v.union(
   v.object({ type: v.literal("error"), error: v.string() }),
 );
 
-const attachment = v.object({
+export const attachment = v.object({
   name: v.string(),
   contentType: v.optional(v.string()),
   mediaType: v.optional(v.string()),
@@ -53,9 +53,9 @@ const schema = defineSchema({
     updatedAt: v.number(),
     createdAt: v.number(),
   })
-    .index("BystackId", ["stackId"])
-    .index("ByEmail", ["email"])
-    .index("ByUpdatedAt", ["updatedAt"]),
+    .index("by_stackId", ["stackId"])
+    .index("by_email", ["email"])
+    .index("by_updatedAt", ["updatedAt"]),
 
   // -------------------------------------------------------------------------
   // Chats
@@ -69,9 +69,13 @@ const schema = defineSchema({
     updatedAt: v.number(),
     createdAt: v.number(),
   })
-    .index("ByUserId", ["userId", "updatedAt"])
-    .index("ByUserIdPinned", ["userId", "isPinned", "updatedAt"])
-    .index("ByShareToken", ["shareToken"]),
+    .index("by_userId_and_updatedAt", ["userId", "updatedAt"])
+    .index("by_userId_and_isPinned_and_updatedAt", [
+      "userId",
+      "isPinned",
+      "updatedAt",
+    ])
+    .index("by_shareToken", ["shareToken"]),
 
   // -------------------------------------------------------------------------
   // Messages
@@ -91,7 +95,7 @@ const schema = defineSchema({
     totalTokens: v.optional(v.number()),
     completionTime: v.optional(v.number()),
     createdAt: v.number(),
-  }).index("ByChatId", ["chatId", "createdAt"]),
+  }).index("by_chatId_and_createdAt", ["chatId", "createdAt"]),
 
   // -------------------------------------------------------------------------
   // Custom Instructions
@@ -102,7 +106,7 @@ const schema = defineSchema({
     isEnabled: v.boolean(),
     updatedAt: v.number(),
     createdAt: v.number(),
-  }).index("ByUserId", ["userId"]),
+  }).index("by_userId", ["userId"]),
 
   // -------------------------------------------------------------------------
   // User Preferences
@@ -112,7 +116,7 @@ const schema = defineSchema({
     defaultModel: v.optional(v.string()),
     preferences: v.optional(v.any()),
     updatedAt: v.number(),
-  }).index("ByUserId", ["userId"]),
+  }).index("by_userId", ["userId"]),
 
   // -------------------------------------------------------------------------
   // Usage (unified daily counters)
@@ -125,8 +129,8 @@ const schema = defineSchema({
     tokensByProvider: v.optional(v.any()),
     resetAt: v.number(),
   })
-    .index("ByUserIdDate", ["userId", "date"])
-    .index("ByUserId", ["userId"]),
+    .index("by_userId_and_date", ["userId", "date"])
+    .index("by_userId", ["userId"]),
 
   // -------------------------------------------------------------------------
   // Subscriptions
@@ -156,9 +160,9 @@ const schema = defineSchema({
     updatedAt: v.number(),
     createdAt: v.number(),
   })
-    .index("ByUserId", ["userId"])
-    .index("ByExternalId", ["externalId"])
-    .index("ByCustomerId", ["customerId"]),
+    .index("by_userId", ["userId"])
+    .index("by_externalId", ["externalId"])
+    .index("by_customerId", ["customerId"]),
 });
 
 export default schema;

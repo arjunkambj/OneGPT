@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { getCurrentUser, requireCurrentUser } from "./lib/users";
 
 // ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ export const getCustomInstructions = query({
     if (!user) return null;
     return await ctx.db
       .query("customInstructions")
-      .withIndex("ByUserId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
   },
 });
@@ -29,7 +29,7 @@ export const saveCustomInstructions = mutation({
     const user = await requireCurrentUser(ctx);
     const existing = await ctx.db
       .query("customInstructions")
-      .withIndex("ByUserId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
 
     const now = Date.now();
@@ -61,7 +61,7 @@ export const deleteCustomInstructions = mutation({
     const user = await requireCurrentUser(ctx);
     const existing = await ctx.db
       .query("customInstructions")
-      .withIndex("ByUserId", (q) => q.eq("userId", user._id))
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
       .first();
     if (existing) {
       await ctx.db.delete(existing._id);

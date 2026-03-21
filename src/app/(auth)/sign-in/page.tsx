@@ -77,7 +77,11 @@ export default function SignInPage() {
       <div className="text-center">
         <div className="flex justify-center mb-4">
           <img src="/Black.svg" alt="OneGPT" className="size-8 dark:hidden" />
-          <img src="/white.svg" alt="OneGPT" className="size-8 hidden dark:block" />
+          <img
+            src="/white.svg"
+            alt="OneGPT"
+            className="size-8 hidden dark:block"
+          />
         </div>
         <h1 className="text-2xl font-bold">Welcome</h1>
         <p className="mt-2 text-sm text-muted-foreground">
