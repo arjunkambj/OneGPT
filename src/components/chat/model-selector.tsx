@@ -1066,47 +1066,18 @@ export function ModelSelector({
                           : "hover:bg-accent/60 text-muted-foreground/60 hover:text-foreground",
                       )}
                     >
-                      <span className="relative">
-                        {hasNew && (
-                          <span className="absolute inset-0 -m-0.5 rounded-full bg-amber-400/15 dark:bg-amber-500/10 blur-[3px]" />
-                        )}
-                        {isFav ? (
-                          <Icon
-                            icon="solar:star-bold"
-                            width={isMobile ? 16 : 14}
-                            height={isMobile ? 16 : 14}
-                          />
-                        ) : (
-                          <ProviderIcon
-                            provider={provider as ModelProvider}
-                            size={isMobile ? 16 : 14}
-                          />
-                        )}
-                        {hasNew && (
-                          <svg
-                            className="absolute -top-1.5 -right-1.5 size-2.5 text-amber-500 dark:text-amber-400"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M6 5.5C6 5.224 5.776 5 5.5 5s-.5.224-.5.5c0 .98-.217 1.573-.572 1.928C4.073 7.783 3.48 8 2.5 8c-.276 0-.5.224-.5.5s.224.5.5.5c.98 0 1.573.217 1.928.572C4.783 9.927 5 10.52 5 11.5c0 .276.224.5.5.5s.5-.224.5-.5c0-.98.217-1.573.572-1.928C6.927 9.217 7.52 9 8.5 9c.276 0 .5-.224.5-.5S8.776 8 8.5 8c-.98 0-1.573-.217-1.928-.572C6.217 7.073 6 6.48 6 5.5Z"
-                              fill="currentColor"
-                            />
-                            <path
-                              d="M11 1.5c0-.276-.224-.5-.5-.5s-.5.224-.5.5c0 .633-.141.975-.333 1.167-.192.192-.534.333-1.167.333-.276 0-.5.224-.5.5s.224.5.5.5c.633 0 .975.141 1.167.333.192.192.333.534.333 1.167 0 .276.224.5.5.5s.5-.224.5-.5c0-.633.141-.975.333-1.167.192-.192.534-.333 1.167-.333.276 0 .5-.224.5-.5s-.224-.5-.5-.5c-.633 0-.975-.141-1.167-.333C11.141 2.475 11 2.133 11 1.5Z"
-                              fill="currentColor"
-                            />
-                            <path
-                              fillRule="evenodd"
-                              clipRule="evenodd"
-                              d="M21 15c-5.556 0-8-2.444-8-8 0 5.556-2.444 8-8 8 5.556 0 8 2.444 8 8 0-5.556 2.444-8 8-8Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </span>
+                      {isFav ? (
+                        <Icon
+                          icon="solar:star-bold"
+                          width={isMobile ? 16 : 14}
+                          height={isMobile ? 16 : 14}
+                        />
+                      ) : (
+                        <ProviderIcon
+                          provider={provider as ModelProvider}
+                          size={isMobile ? 16 : 14}
+                        />
+                      )}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent
