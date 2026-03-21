@@ -75,7 +75,7 @@ export default function SignInPage() {
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Welcome to PropGame</h1>
+        <h1 className="text-2xl font-bold">Welcome</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {step === "email"
             ? "Enter your email to continue"
@@ -100,7 +100,7 @@ export default function SignInPage() {
             <Input
               type="email"
               placeholder="you@example.com"
-              className="pl-10"
+              className="h-11 pl-10"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -109,7 +109,7 @@ export default function SignInPage() {
 
           <Button
             type="submit"
-            className="w-full text-md"
+            className="w-full text-md h-11"
             disabled={isEmailLoading}
           >
             {isEmailLoading ? <Spinner /> : null}
@@ -174,7 +174,7 @@ export default function SignInPage() {
 
       <Button
         variant="secondary"
-        className="w-full text-md"
+        className="w-full text-md h-11"
         disabled={isGoogleLoading}
         onClick={async () => {
           setIsGoogleLoading(true);
@@ -191,7 +191,7 @@ export default function SignInPage() {
       </Button>
 
       <p className="text-center text-xs text-muted-foreground/80">
-        &copy; {new Date().getFullYear()} PropGame. All rights reserved.
+        &copy; {new Date().getFullYear()} OneGPT. All rights reserved.
       </p>
     </div>
   );

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "../styles/globals.css";
 import { cn } from "@/lib/utils";
+import { StackProvider, StackTheme } from "@stackframe/stack";
+import { stackServerApp } from "@/stack/server";
+import ConvexClientProvider from "@/components/ConvexClientProvider";
 
-const figtree = Figtree({subsets:['latin'],variable:'--font-sans'});
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,9 +31,22 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", figtree.variable)}
+      className={cn(
+        "h-dvh",
+        "antialiased",
+        geistSans.variable,
+        geistMono.variable,
+        "font-sans",
+        figtree.variable,
+      )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <StackProvider app={stackServerApp}>
+          <StackTheme>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </StackTheme>
+        </StackProvider>
+      </body>
     </html>
   );
 }
