@@ -367,13 +367,10 @@ export function FormComponent({
           </AnimatePresence>
 
           {/* Form container */}
-          <div className="relative">
-            {/* Subtle shadow glow behind the input */}
-            <div className="absolute -inset-1 rounded-2xl bg-primary/3 dark:bg-primary/3 blur-sm pointer-events-none" />
-
+          <div>
             <div
               className={cn(
-                "relative rounded-xl bg-muted border border-ring/10",
+                "rounded-xl bg-muted border border-ring/10",
                 "focus-within:border-ring/5 transition-colors duration-200",
               )}
             >
