@@ -582,10 +582,10 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Header                                                            */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarHeader className="p-0! pt-1! pb-1!">
+      <SidebarHeader className="p-0! pt-1! pb-1! group-data-[collapsible=icon]:py-2!">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="relative flex items-center group-data-[collapsible=icon]:justify-center w-full h-12 px-2 overflow-visible">
+            <div className="relative flex items-center group-data-[collapsible=icon]:justify-center w-full h-12 group-data-[collapsible=icon]:h-8 px-2 overflow-visible">
               <Button
                 variant="ghost"
                 className="h-auto w-fit group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center py-1 px-2 justify-start hover:bg-primary/10!"
@@ -619,8 +619,8 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Static nav (New Chat + Recent label)                              */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarGroup className="p-2 pb-0 gap-1.5 shrink-0">
-        <SidebarMenu className="gap-1 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+      <SidebarGroup className="p-2 pb-0 gap-1.5 shrink-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:gap-0">
+        <SidebarMenu className="gap-1 group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
           {/* New Chat */}
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -763,7 +763,7 @@ export const AppSidebar = memo(function AppSidebar({
             </div>
 
             {/* Collapsed state */}
-            <div className="hidden group-data-[collapsible=icon]:block pb-2">
+            <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center pb-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
@@ -792,7 +792,7 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Footer - User account dropdown                                    */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarFooter className="group-data-[collapsible=icon]:border-none border-t border-border p-0 gap-0">
+      <SidebarFooter className="group-data-[collapsible=icon]:border-none border-t border-border p-0 gap-0 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:pb-1">
         <SidebarMenu className="gap-0">
           <SidebarMenuItem>
             {user ? (
@@ -841,13 +841,13 @@ export const AppSidebar = memo(function AppSidebar({
                 </div>
 
                 {/* Collapsed state - avatar only */}
-                <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-2">
+                <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 p-0 overflow-visible"
+                        className="h-8 w-8 p-0 overflow-visible"
                       >
                         <Avatar className="h-6 w-6 overflow-hidden rounded-full">
                           {userImage && <AvatarImage src={userImage} />}
@@ -891,7 +891,7 @@ export const AppSidebar = memo(function AppSidebar({
                 </div>
 
                 {/* Sign In button - collapsed state */}
-                <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-2">
+                <div className="hidden group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center py-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
