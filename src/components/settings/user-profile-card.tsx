@@ -29,7 +29,7 @@ export function UserProfileCard({
   if (variant === "mobile") {
     return (
       <div className="lg:hidden mb-6">
-        <Card className="p-4 shadow-none border-none">
+        <Card className="p-4 shadow-none border-none ring-0">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-border/50 ring-offset-2 ring-offset-background">
               <AvatarImage src={userImage} />
@@ -68,7 +68,7 @@ export function UserProfileCard({
   }
 
   return (
-    <Card className="p-6 shadow-none border-none">
+    <Card className="p-6 shadow-none border-none ring-0">
       <div className="flex flex-col items-center text-center space-y-4">
         <Avatar className="h-20 w-20 overflow-hidden rounded-full ring-2 ring-border/50 ring-offset-2 ring-offset-background">
           <AvatarImage src={userImage} />

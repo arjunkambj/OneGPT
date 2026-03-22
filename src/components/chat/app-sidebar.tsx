@@ -7,6 +7,7 @@ import { useQuery } from "convex-helpers/react/cache/hooks";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { toast } from "sonner";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import {
   AlertDialog,
@@ -618,18 +619,36 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Static nav (New Chat + Recent label)                              */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarGroup className="p-2 pb-0 gap-0 shrink-0">
-        <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+      <SidebarGroup className="p-2 pb-0 gap-1.5 shrink-0">
+        <SidebarMenu className="gap-1 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
           {/* New Chat */}
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="New Chat"
-              className="bg-primary/10 hover:bg-primary/20 text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98] group-data-[collapsible=icon]:justify-center"
+              className={cn(
+                "text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98] group-data-[collapsible=icon]:justify-center",
+                (pathname === "/" || pathname === "/new") ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-primary/8",
+              )}
               onClick={handleNewChat}
             >
               <Icon icon="tabler:plus" className="size-4" />
               <span className="group-data-[collapsible=icon]:hidden">
                 New Chat
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {/* Image Studio (coming soon) */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Image Studio (Coming Soon)"
+              className="!bg-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground group-data-[collapsible=icon]:justify-center"
+              onClick={() => toast("Image Studio is coming soon!", { description: "We're working on it. Stay tuned!" })}
+            >
+              <Icon icon="solar:gallery-bold" className="size-4" />
+              <span className="group-data-[collapsible=icon]:hidden flex items-center gap-2">
+                Image Studio
+                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full font-medium text-muted-foreground">Soon</span>
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -639,7 +658,7 @@ export const AppSidebar = memo(function AppSidebar({
         <button
           type="button"
           onClick={() => setIsRecentCollapsed((prev) => !prev)}
-          className="px-2 pt-3 pb-1 group-data-[collapsible=icon]:hidden flex w-full items-center justify-between text-left text-muted-foreground/80 hover:text-foreground transition-colors"
+          className="px-2 pt-4 pb-1 group-data-[collapsible=icon]:hidden flex w-full items-center justify-between text-left text-muted-foreground/80 hover:text-foreground transition-colors"
           aria-expanded={!isRecentCollapsed}
         >
           <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.12em]">

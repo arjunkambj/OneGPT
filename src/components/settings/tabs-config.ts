@@ -1,10 +1,10 @@
 export const tabs = [
+  { value: "usage", label: "Usage", icon: "solar:chart-square-linear" },
   {
     value: "preferences",
     label: "Preferences",
     icon: "solar:tuning-2-linear",
   },
-  { value: "usage", label: "Usage", icon: "solar:chart-square-linear" },
   {
     value: "subscription",
     label: "Subscription",

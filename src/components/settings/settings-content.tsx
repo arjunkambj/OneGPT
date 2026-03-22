@@ -27,7 +27,7 @@ export function SettingsContent() {
   const user = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultTab = searchParams.get("tab") || "preferences";
+  const defaultTab = searchParams.get("tab") || "usage";
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { tier, isProUser } = useSubscription();
 
@@ -117,7 +117,7 @@ export function SettingsContent() {
           <aside className="hidden lg:block lg:w-64 shrink-0 space-y-4">
             <UserProfileCard {...profileProps} variant="desktop" />
 
-            <Card className="p-2 shadow-none border-none">
+            <Card className="p-2 shadow-none border-none ring-0">
               <TabsList className="flex flex-col h-auto w-full bg-transparent gap-0.5">
                 {tabs.map((tab) => (
                   <TabsTrigger
@@ -141,26 +141,11 @@ export function SettingsContent() {
 
           {/* Content Area */}
           <div className="flex-1 min-w-0">
-            <TabsContent value="preferences" className="m-0">
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground/30">01</span>
-                    <h2 className="text-lg font-semibold">Preferences</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Customize your experience
-                  </p>
-                </div>
-                <PreferencesSection />
-              </div>
-            </TabsContent>
-
             <TabsContent value="usage" className="m-0">
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground/30">02</span>
+                    <span className="text-xs text-muted-foreground/30">01</span>
                     <h2 className="text-lg font-semibold">Usage Statistics</h2>
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -168,6 +153,21 @@ export function SettingsContent() {
                   </p>
                 </div>
                 <UsageSection />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="preferences" className="m-0">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground/30">02</span>
+                    <h2 className="text-lg font-semibold">Preferences</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Customize your experience
+                  </p>
+                </div>
+                <PreferencesSection />
               </div>
             </TabsContent>
 

@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { ThemeProvider } from "next-themes";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
+import { Toaster } from "@/components/ui/sonner";
 import { stackServerApp } from "@/stack/server";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
@@ -98,6 +99,7 @@ export default function RootLayout({
           <StackProvider app={stackServerApp}>
             <StackTheme>
               <ConvexClientProvider>{children}</ConvexClientProvider>
+              <Toaster />
             </StackTheme>
           </StackProvider>
         </ThemeProvider>
