@@ -104,7 +104,7 @@ const MODEL_MAP = {
   "onegpt-cmd-a-think": "cohere/command-a-03-2025",
 
   // Moonshot (Kimi)
-  "onegpt-kimi-k2.5": "moonshotai/kimi-k2",
+  "onegpt-kimi-k2.5": "moonshotai/kimi-k2.5",
 
   // Minimax
   "onegpt-minimax-m2.7": "minimax/minimax-m2.7",
@@ -139,6 +139,29 @@ const MODEL_MAP = {
   "onegpt-auto": "x-ai/grok-4.20-beta",
 } as const;
 
+const MODEL_PROVIDER_OPTIONS: Partial<
+  Record<
+    keyof typeof MODEL_MAP,
+    {
+      openrouter: {
+        provider: {
+          order: string[];
+          allow_fallbacks: boolean;
+        };
+      };
+    }
+  >
+> = {
+  "onegpt-kimi-k2.5": {
+    openrouter: {
+      provider: {
+        order: ["inceptron/int4"],
+        allow_fallbacks: false,
+      },
+    },
+  },
+} as const;
+
 const DEFAULT_MODEL = "x-ai/grok-4.20-beta";
 
 export const SUPPORTED_MODEL_VALUES = Object.keys(MODEL_MAP);
@@ -153,4 +176,10 @@ export function isSupportedModel(
 
 export function mapModelToOpenRouter(modelValue: keyof typeof MODEL_MAP) {
   return MODEL_MAP[modelValue] ?? DEFAULT_MODEL;
+}
+
+export function getOpenRouterProviderOptions(
+  modelValue: keyof typeof MODEL_MAP,
+) {
+  return MODEL_PROVIDER_OPTIONS[modelValue];
 }

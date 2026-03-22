@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 function getStoredValue<T>(key: string, defaultValue: T): T {
   if (typeof window === "undefined") return defaultValue;
@@ -19,6 +19,9 @@ export function useLocalStorage<T>(
   const [storedValue, setStoredValue] = useState<T>(() =>
     getStoredValue(key, defaultValue),
   );
+
+  const storedValueRef = useRef(storedValue);
+  storedValueRef.current = storedValue;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -54,7 +57,7 @@ export function useLocalStorage<T>(
     (value: T | ((val: T) => T)) => {
       try {
         const nextValue =
-          value instanceof Function ? value(storedValue) : value;
+          value instanceof Function ? value(storedValueRef.current) : value;
         setStoredValue(nextValue);
         if (typeof window !== "undefined") {
           if (nextValue === undefined) {
@@ -72,7 +75,7 @@ export function useLocalStorage<T>(
         console.warn(`Error saving to localStorage key "${key}":`, error);
       }
     },
-    [key, storedValue],
+    [key],
   );
 
   return [storedValue, setValue];

@@ -26,6 +26,13 @@ export const messagePart = v.union(
       v.literal("error"),
     ),
   }),
+  v.object({
+    type: v.literal("source-url"),
+    sourceId: v.string(),
+    url: v.string(),
+    title: v.optional(v.string()),
+    providerMetadata: v.optional(v.any()),
+  }),
   v.object({ type: v.literal("error"), error: v.string() }),
 );
 
@@ -82,11 +89,13 @@ const schema = defineSchema({
   // -------------------------------------------------------------------------
   messages: defineTable({
     chatId: v.id("chats"),
+    parentMessageId: v.optional(v.id("messages")),
     role: v.union(
       v.literal("user"),
       v.literal("assistant"),
       v.literal("system"),
     ),
+    mode: v.optional(v.union(v.literal("chat"), v.literal("search"))),
     parts: v.array(messagePart),
     attachments: v.optional(v.array(attachment)),
     model: v.optional(v.string()),
@@ -95,7 +104,13 @@ const schema = defineSchema({
     totalTokens: v.optional(v.number()),
     completionTime: v.optional(v.number()),
     createdAt: v.number(),
-  }).index("by_chatId_and_createdAt", ["chatId", "createdAt"]),
+  })
+    .index("by_chatId_and_createdAt", ["chatId", "createdAt"])
+    .index("by_chatId_and_parentMessageId_and_createdAt", [
+      "chatId",
+      "parentMessageId",
+      "createdAt",
+    ]),
 
   // -------------------------------------------------------------------------
   // Custom Instructions

@@ -50,10 +50,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { chatHomePath, chatPath } from "@/lib/chat-routes";
 import { cn } from "@/lib/utils";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useTheme } from "next-themes";
 import { useUser } from "@stackframe/stack";
-import { useQuery, useMutation } from "convex/react";
+import Link from "next/link";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -123,13 +127,15 @@ const groupChatsByDate = (chats: ChatItem[]) => {
 // Theme selector (used inside user dropdown)
 // ---------------------------------------------------------------------------
 const themes = [
-  {
-    value: "system",
-    label: "System",
-    colors: ["#F9F9F9", "#6B5B4F", "#E8DFD5"],
-  },
+  { value: "system", label: "Sys", colors: ["#F9F9F9", "#6B5B4F", "#E8DFD5"] },
   { value: "light", label: "Light", colors: ["#FAFAFA", "#6B5B4F", "#EBE0C8"] },
   { value: "dark", label: "Dark", colors: ["#1A1A1A", "#E8D5A3", "#3A3020"] },
+  { value: "colourful", label: "Color", colors: ["#3D3428", "#C4A96A", "#5A4D3A"] },
+  { value: "t3chat", label: "T3", colors: ["#2A1F35", "#9B2B5A", "#4A2D5A"] },
+  { value: "claudedark", label: "CD", colors: ["#352F28", "#C07A3E", "#2A2520"] },
+  { value: "claudelight", label: "CL", colors: ["#F5F0E8", "#B86030", "#E8DDD0"] },
+  { value: "neutrallight", label: "NL", colors: ["#FFFFFF", "#BF6E35", "#F1F1F1"] },
+  { value: "neutraldark", label: "ND", colors: ["#252525", "#9C5B2C", "#434343"] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -291,6 +297,7 @@ function ChatItemRow({
   chat,
   isActive,
   onSelect,
+  onPrefetch,
   onRename,
   onDelete,
   onTogglePin,
@@ -298,6 +305,7 @@ function ChatItemRow({
   chat: ChatItem;
   isActive: boolean;
   onSelect: () => void;
+  onPrefetch: () => void;
   onRename: () => void;
   onDelete: () => void;
   onTogglePin: () => void;
@@ -322,6 +330,8 @@ function ChatItemRow({
         >
           <button
             onClick={onSelect}
+            onMouseEnter={onPrefetch}
+            onFocus={onPrefetch}
             className={cn(
               "flex items-center gap-2 flex-1 min-w-0 px-2 py-1 text-left",
               isActive && "font-medium",
@@ -380,6 +390,7 @@ export const AppSidebar = memo(function AppSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const user = useUser();
+  const { isProUser, isLoading: isSubscriptionLoading } = useSubscription();
 
   const userName = user?.displayName ?? "User";
   const userEmail = user?.primaryEmail ?? "";
@@ -410,6 +421,7 @@ export const AppSidebar = memo(function AppSidebar({
 
   // ---- Recent collapsed ----
   const [isRecentCollapsed, setIsRecentCollapsed] = useState(false);
+  const prefetchedChatPathsRef = React.useRef(new Set<string>());
 
   // Close mobile sidebar helper
   const closeMobileSidebar = useCallback(() => {
@@ -431,17 +443,34 @@ export const AppSidebar = memo(function AppSidebar({
   const handleChatSelect = useCallback(
     (chatId: string) => {
       closeMobileSidebar();
-      router.push(`/chat/${chatId}`);
+      router.push(chatPath(chatId));
       onChatSelect?.(chatId);
     },
     [closeMobileSidebar, onChatSelect, router],
   );
 
+  const prefetchChatRoute = useCallback(
+    (chatId: string) => {
+      const path = chatPath(chatId);
+      if (prefetchedChatPathsRef.current.has(path)) return;
+
+      try {
+        router.prefetch(path);
+        prefetchedChatPathsRef.current.add(path);
+      } catch {}
+    },
+    [router],
+  );
+
   const handleNewChat = useCallback(() => {
     closeMobileSidebar();
-    router.push("/");
+    if (!user) {
+      router.push("/sign-in");
+      return;
+    }
     onNewChat?.();
-  }, [closeMobileSidebar, onNewChat, router]);
+    router.push(chatHomePath);
+  }, [closeMobileSidebar, onNewChat, user, router]);
 
   const handleTogglePin = useCallback(
     (chatId: string) => {
@@ -487,11 +516,14 @@ export const AppSidebar = memo(function AppSidebar({
     setIsDeleting(true);
     try {
       await deleteMutation({ chatId: deleteTarget.id as Id<"chats"> });
+      if (pathname?.includes(deleteTarget.id)) {
+        router.replace(chatHomePath);
+      }
     } finally {
       setIsDeleting(false);
       closeDeleteDialog();
     }
-  }, [deleteTarget, closeDeleteDialog, deleteMutation]);
+  }, [deleteTarget, closeDeleteDialog, deleteMutation, pathname, router]);
 
   // ---- Render helpers ----
   const renderChatItem = useCallback(
@@ -503,6 +535,7 @@ export const AppSidebar = memo(function AppSidebar({
           chat={chat}
           isActive={Boolean(isActive)}
           onSelect={() => handleChatSelect(chat.id)}
+          onPrefetch={() => prefetchChatRoute(chat.id)}
           onRename={() => openRenameDialog(chat)}
           onDelete={() => openDeleteDialog(chat)}
           onTogglePin={() => handleTogglePin(chat.id)}
@@ -513,6 +546,7 @@ export const AppSidebar = memo(function AppSidebar({
       activeChatId,
       pathname,
       handleChatSelect,
+      prefetchChatRoute,
       openRenameDialog,
       openDeleteDialog,
       handleTogglePin,
@@ -541,12 +575,12 @@ export const AppSidebar = memo(function AppSidebar({
                     <img
                       src="/Black.svg"
                       alt="OneGPT"
-                      className="size-5 dark:hidden"
+                      className="size-5 logo-dark"
                     />
                     <img
                       src="/white.svg"
                       alt="OneGPT"
-                      className="size-5 hidden dark:block"
+                      className="size-5 hidden logo-light"
                     />
                   </div>
                   <div className="flex flex-row items-center gap-2 leading-none group-data-[collapsible=icon]:hidden">
@@ -659,6 +693,62 @@ export const AppSidebar = memo(function AppSidebar({
           )}
         </SidebarMenu>
       </SidebarContent>
+
+      {/* ----------------------------------------------------------------- */}
+      {/* Upgrade to Pro card (free users only)                             */}
+      {/* ----------------------------------------------------------------- */}
+      {user && !isProUser && !isSubscriptionLoading && (
+        <SidebarGroup className="p-0 mt-auto">
+          <SidebarGroupContent>
+            {/* Expanded state */}
+            <div className="group-data-[collapsible=icon]:hidden px-3 pb-2">
+              <Link
+                prefetch={true}
+                href="/pricing"
+                onClick={() => isMobile && setOpenMobile(false)}
+                className="relative flex flex-col gap-1.5 rounded-xl p-4 pb-3 bg-muted hover:bg-muted/80 transition-colors overflow-hidden group/upgrade"
+              >
+                <span className="text-base font-medium">Upgrade to Pro</span>
+                <span className="text-xs text-muted-foreground pr-12">
+                  Unlimited searches, 40+ models & higher rate limits
+                </span>
+                <div className="absolute -bottom-2 -right-2 flex items-center justify-center size-14 rounded-full bg-background group-hover/upgrade:scale-110 transition-transform duration-300">
+                  <Icon
+                    icon="solar:crown-bold"
+                    className="text-foreground"
+                    width={22}
+                    height={22}
+                  />
+                </div>
+              </Link>
+            </div>
+
+            {/* Collapsed state */}
+            <div className="hidden group-data-[collapsible=icon]:block pb-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    prefetch={true}
+                    href="/pricing"
+                    onClick={() => isMobile && setOpenMobile(false)}
+                    className="flex items-center justify-center size-8 mx-auto rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                  >
+                    <Icon
+                      icon="solar:crown-bold"
+                      className="text-foreground"
+                      width={16}
+                      height={16}
+                    />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="center">
+                  Upgrade to Pro
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      )}
 
       {/* ----------------------------------------------------------------- */}
       {/* Footer - User account dropdown                                    */}

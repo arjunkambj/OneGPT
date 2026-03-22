@@ -229,7 +229,7 @@ const components: Components = {
   },
 };
 
-export function Markdown({ content }: MarkdownProps) {
+export const Markdown = React.memo(function Markdown({ content }: MarkdownProps) {
   return (
     <div className="prose-sm max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
@@ -237,4 +237,4 @@ export function Markdown({ content }: MarkdownProps) {
       </ReactMarkdown>
     </div>
   );
-}
+});

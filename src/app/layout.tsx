@@ -85,6 +85,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          themes={["light", "dark", "colourful", "t3chat", "claudedark", "claudelight", "neutrallight", "neutraldark"]}
         >
           <StackProvider app={stackServerApp}>
             <StackTheme>

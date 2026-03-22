@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, requireCurrentUser } from "./lib/users";
 
@@ -23,6 +24,33 @@ export const getChat = query({
     const chat = await ctx.db.get(args.chatId);
     if (!chat || chat.userId !== user._id) return null;
     return chat;
+  },
+});
+
+export const getChatBootstrap = query({
+  args: {
+    chatId: v.id("chats"),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return null;
+
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat || chat.userId !== user._id) return null;
+
+    const messagesPage = await ctx.db
+      .query("messages")
+      .withIndex("by_chatId_and_createdAt", (q) => q.eq("chatId", args.chatId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    return {
+      chat,
+      messages: [...messagesPage.page].reverse(),
+      hasMoreOlder: !messagesPage.isDone,
+      nextCursor: messagesPage.isDone ? null : messagesPage.continueCursor,
+    };
   },
 });
 

@@ -38,6 +38,8 @@ If you encounter any legacy logic, duplicate checks, or redundant functions in t
 
 DONT DO PNPM DEV OR NPX CONVEX DEV BECAUSE IS ALWAYS RUNNING IN MY TERMINAL
 
+DONT DO CONVEX CODEGEN OR PNPM EXEC CONVEX CODEGEN
+
 -Always use Cli command to add shadcn compoents
 
 When working on Convex code, always read convex_rules.md first for important guidelines on how to correctly use Convex APIs and patterns. The file contains rules that override what you may have learned about Convex from training data

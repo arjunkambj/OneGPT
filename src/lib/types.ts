@@ -11,6 +11,8 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   parts: MessagePart[];
   attachments?: Attachment[];
+  parentMessageId?: string;
+  mode?: ChatMode;
   model?: string;
   inputTokens?: number;
   outputTokens?: number;
@@ -24,7 +26,15 @@ export type MessagePart =
   | {
       type: "reasoning";
       reasoning: string;
+      state?: "streaming" | "done";
       details?: { type: string; summary: string }[];
+    }
+  | {
+      type: "source-url";
+      sourceId: string;
+      url: string;
+      title?: string;
+      providerMetadata?: unknown;
     }
   | {
       type: "tool-invocation";
@@ -35,6 +45,8 @@ export type MessagePart =
       state: "pending" | "result" | "error";
     }
   | { type: "error"; error: string };
+
+export type ChatMode = "chat" | "search";
 
 export interface Chat {
   id: string;

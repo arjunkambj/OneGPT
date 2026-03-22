@@ -18,7 +18,7 @@ import {
   type ModelProvider,
   models,
 } from "@/constant/ai-model";
-import type { Attachment } from "@/lib/types";
+import type { Attachment, ChatMode } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -33,6 +33,8 @@ interface FormComponentProps {
   onStop?: () => void;
   selectedModel: string;
   onModelChange: (model: string) => void;
+  searchMode: ChatMode;
+  onSearchModeChange: (mode: ChatMode) => void;
   attachments?: Attachment[];
   onAttachmentsChange?: (attachments: Attachment[]) => void;
   attachmentsEnabled?: boolean;
@@ -234,6 +236,8 @@ export function FormComponent({
   onStop,
   selectedModel,
   onModelChange,
+  searchMode,
+  onSearchModeChange,
   attachments = [],
   onAttachmentsChange,
   attachmentsEnabled = true,
@@ -387,8 +391,8 @@ export function FormComponent({
           <div>
             <div
               className={cn(
-                "rounded-xl bg-muted border border-ring/10",
-                "focus-within:border-ring/5 transition-colors duration-200",
+                "rounded-xl bg-muted",
+                "transition-colors duration-200",
               )}
             >
               {/* Textarea */}
@@ -496,6 +500,25 @@ export function FormComponent({
                       />
                     </button>
                   </ModelSelector>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSearchModeChange(
+                        searchMode === "search" ? "chat" : "search",
+                      )
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
+                      "border text-xs font-medium transition-all duration-200",
+                      searchMode === "search"
+                        ? "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                        : "border-transparent bg-foreground/5 text-muted-foreground hover:border-border/50 hover:bg-foreground/10 hover:text-foreground",
+                    )}
+                  >
+                    <Icon icon="solar:magnifer-linear" className="size-3.5" />
+                    <span>{searchMode === "search" ? "Search" : "Chat"}</span>
+                  </button>
                 </div>
 
                 {/* Right side: submit / stop */}
