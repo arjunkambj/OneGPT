@@ -1,10 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/use-subscription";
+import { cn } from "@/lib/utils";
 
 const tierConfig = {
   free: {
@@ -33,7 +33,7 @@ export function SubscriptionSection() {
 
   return (
     <div className="space-y-4">
-      <div className="p-6 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="p-6 rounded-xl bg-muted/50">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Icon

@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useUser } from "@stackframe/stack";
 import { Icon } from "@iconify/react";
+import { useUser } from "@stackframe/stack";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -16,14 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/use-subscription";
-import { tabs } from "./tabs-config";
-import { SettingsHeader } from "./settings-header";
-import { UserProfileCard } from "./user-profile-card";
+import { cn } from "@/lib/utils";
 import { PreferencesSection } from "./preferences-section";
-import { UsageSection } from "./usage-section";
+import { SettingsHeader } from "./settings-header";
 import { SubscriptionSection } from "./subscription-section";
+import { tabs } from "./tabs-config";
+import { UsageSection } from "./usage-section";
+import { UserProfileCard } from "./user-profile-card";
 
 export function SettingsContent() {
   const user = useUser();
@@ -119,7 +117,7 @@ export function SettingsContent() {
           <aside className="hidden lg:block lg:w-64 shrink-0 space-y-4">
             <UserProfileCard {...profileProps} variant="desktop" />
 
-            <Card className="p-2 shadow-none border-border/60">
+            <Card className="p-2 shadow-none border-none">
               <TabsList className="flex flex-col h-auto w-full bg-transparent gap-0.5">
                 {tabs.map((tab) => (
                   <TabsTrigger

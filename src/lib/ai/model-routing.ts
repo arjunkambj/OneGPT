@@ -111,7 +111,7 @@ const MODEL_MAP = {
   "onegpt-minimax-m2.5": "minimax/minimax-m2.5",
 
   // Zhipu (GLM)
-  "onegpt-glm-5": "zhipu/glm-4-plus",
+  "onegpt-glm-5": "deepinfra/fp4",
   "onegpt-glm-4.7": "zhipu/glm-4-plus",
   "onegpt-glm-4.7-flash": "zhipu/glm-4-flash",
 

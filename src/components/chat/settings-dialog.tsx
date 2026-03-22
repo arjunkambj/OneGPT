@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Icon } from "@iconify/react";
 import { useTheme } from "next-themes";
+import { useState } from "react";
+import { ChatPreferencesSection } from "@/components/settings/chat-preferences-section";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Drawer,
@@ -16,25 +18,10 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { models, PROVIDERS, getModelProvider } from "@/constant/ai-model";
-import { isSupportedModel } from "@/lib/ai/model-routing";
 import { cn } from "@/lib/utils";
-import { Icon } from "@iconify/react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,7 +32,7 @@ interface SettingsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type TabValue = "profile" | "appearance" | "chat";
+type TabValue = "users" | "preferences";
 
 interface TabItem {
   value: TabValue;
@@ -58,9 +45,8 @@ interface TabItem {
 // ---------------------------------------------------------------------------
 
 const tabItems: TabItem[] = [
-  { value: "profile", label: "Profile", icon: "solar:user-linear" },
-  { value: "appearance", label: "Appearance", icon: "solar:palette-linear" },
-  { value: "chat", label: "Chat Settings", icon: "solar:settings-linear" },
+  { value: "users", label: "Users", icon: "solar:user-linear" },
+  { value: "preferences", label: "Preferences", icon: "solar:settings-linear" },
 ];
 
 const PLACEHOLDER_USER = {
@@ -195,6 +181,7 @@ function AppearanceTab() {
       <div className="grid grid-cols-3 gap-3">
         {themes.map((t) => (
           <button
+            type="button"
             key={t.value}
             onClick={() => setTheme(t.value)}
             className={cn(
@@ -225,7 +212,9 @@ function AppearanceTab() {
             {theme === t.value && (
               <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
                 <svg
+                  aria-hidden="true"
                   className="h-2.5 w-2.5 text-primary-foreground"
+                  focusable="false"
                   viewBox="0 0 12 12"
                   fill="none"
                 >
@@ -247,110 +236,14 @@ function AppearanceTab() {
 }
 
 // ---------------------------------------------------------------------------
-// Chat Settings Tab
+// Preferences Tab (Appearance + Chat Settings)
 // ---------------------------------------------------------------------------
 
-function ChatSettingsTab() {
-  const supportedModels = useMemo(
-    () => models.filter((model) => isSupportedModel(model.value)),
-    [],
-  );
-  const [selectedModel, setSelectedModel] = useState(
-    supportedModels[0]?.value ?? "onegpt-default",
-  );
-  const [customInstructions, setCustomInstructions] = useState("");
-  const [instructionsEnabled, setInstructionsEnabled] = useState(true);
-
-  // Group models by provider
-  const groupedModels = supportedModels.reduce<Record<string, typeof supportedModels>>(
-    (acc, model) => {
-      const provider =
-        model.provider || getModelProvider(model.value, model.label);
-      const providerName = PROVIDERS[provider]?.name ?? provider;
-      if (!acc[providerName]) acc[providerName] = [];
-      acc[providerName].push(model);
-      return acc;
-    },
-    {},
-  );
-
+function PreferencesTab() {
   return (
     <div className="space-y-6">
-      {/* Default model */}
-      <div className="space-y-2">
-        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Default Model
-        </h4>
-        <p className="text-xs text-muted-foreground mb-3">
-          Choose which AI model is selected by default for new chats
-        </p>
-        <Select value={selectedModel} onValueChange={setSelectedModel}>
-          <SelectTrigger className="w-full h-9 text-sm rounded-lg">
-            <SelectValue placeholder="Select a model" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(groupedModels).map(
-              ([providerName, providerModels]) => (
-                <div key={providerName}>
-                  <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                    {providerName}
-                  </div>
-                  {providerModels.map((model) => (
-                    <SelectItem key={model.value} value={model.value}>
-                      <span>{model.label}</span>
-                    </SelectItem>
-                  ))}
-                </div>
-              ),
-            )}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Separator className="opacity-50" />
-
-      {/* Custom instructions */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Custom Instructions
-            </h4>
-            <p className="text-xs text-muted-foreground mt-1">
-              Personalise how the AI responds to you
-            </p>
-          </div>
-          <Switch
-            id="enable-instructions"
-            checked={instructionsEnabled}
-            onCheckedChange={setInstructionsEnabled}
-          />
-        </div>
-
-        {instructionsEnabled && (
-          <div className="space-y-2.5">
-            <Textarea
-              id="instructions"
-              placeholder="e.g. 'Always provide code examples' or 'Keep responses concise and practical'"
-              value={customInstructions}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-              className="min-h-[100px] resize-y text-sm rounded-lg border-border/60"
-              style={{ maxHeight: "25dvh" }}
-            />
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                className="h-7 text-xs rounded-lg px-3"
-                disabled={!customInstructions.trim()}
-              >
-                <Icon icon="solar:diskette-linear" className="w-3 h-3 mr-1.5" />
-                Save
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
+      <AppearanceTab />
+      <ChatPreferencesSection />
     </div>
   );
 }
@@ -360,14 +253,13 @@ function ChatSettingsTab() {
 // ---------------------------------------------------------------------------
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const [currentTab, setCurrentTab] = useState<TabValue>("profile");
+  const [currentTab, setCurrentTab] = useState<TabValue>("users");
   const isMobile = useIsMobile();
 
   const contentSections = (
     <>
-      {currentTab === "profile" && <ProfileTab isMobile={isMobile} />}
-      {currentTab === "appearance" && <AppearanceTab />}
-      {currentTab === "chat" && <ChatSettingsTab />}
+      {currentTab === "users" && <ProfileTab isMobile={isMobile} />}
+      {currentTab === "preferences" && <PreferencesTab />}
     </>
   );
 
@@ -398,6 +290,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <div className="w-full py-1.5 px-3 flex gap-1.5 overflow-x-auto">
                 {tabItems.map((item) => (
                   <button
+                    type="button"
                     key={item.value}
                     onClick={() => setCurrentTab(item.value)}
                     className={cn(
@@ -459,6 +352,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             <div className="p-3 flex flex-col gap-0.5">
               {tabItems.map((item) => (
                 <button
+                  type="button"
                   key={item.value}
                   onClick={() => setCurrentTab(item.value)}
                   className={cn(

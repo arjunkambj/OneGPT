@@ -1,6 +1,6 @@
+import { Icon } from "@iconify/react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Icon } from "@iconify/react";
 import { LegalHeader } from "@/components/legal/legal-header";
 
 export const metadata: Metadata = {

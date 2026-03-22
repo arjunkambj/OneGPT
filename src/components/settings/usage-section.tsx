@@ -6,7 +6,7 @@ export function UsageSection() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-5 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
+        <div className="p-5 rounded-xl bg-muted/50">
           <div className="flex items-center gap-2 mb-1">
             <Icon
               icon="solar:chat-round-dots-linear"
@@ -18,7 +18,7 @@ export function UsageSection() {
           <p className="text-xs text-muted-foreground mt-1">Daily usage</p>
         </div>
 
-        <div className="p-5 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
+        <div className="p-5 rounded-xl bg-muted/50">
           <div className="flex items-center gap-2 mb-1">
             <Icon
               icon="solar:magnifer-linear"
@@ -31,7 +31,7 @@ export function UsageSection() {
         </div>
       </div>
 
-      <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="p-4 rounded-xl bg-muted/50">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Icon icon="solar:info-circle-linear" className="h-4 w-4 shrink-0" />
           <p>

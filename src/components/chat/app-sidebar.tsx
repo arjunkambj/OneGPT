@@ -1,8 +1,32 @@
 "use client";
 
-import React, { memo, useMemo, useState, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
 import { Icon } from "@iconify/react";
+import { useUser } from "@stackframe/stack";
+import { useMutation } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache/hooks";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import React, { memo, useCallback, useMemo, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Sidebar,
   SidebarContent,
@@ -24,40 +49,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { chatHomePath, chatPath } from "@/lib/chat-routes";
-import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/use-subscription";
-import { useTheme } from "next-themes";
-import { useUser } from "@stackframe/stack";
-import Link from "next/link";
-import { useMutation } from "convex/react";
-import { useQuery } from "convex-helpers/react/cache/hooks";
+import { chatHomePath, chatPath, newChatPath } from "@/lib/chat-routes";
+import { cn } from "@/lib/utils";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -130,12 +130,27 @@ const themes = [
   { value: "system", label: "Sys", colors: ["#F9F9F9", "#6B5B4F", "#E8DFD5"] },
   { value: "light", label: "Light", colors: ["#FAFAFA", "#6B5B4F", "#EBE0C8"] },
   { value: "dark", label: "Dark", colors: ["#1A1A1A", "#E8D5A3", "#3A3020"] },
-  { value: "colourful", label: "Color", colors: ["#3D3428", "#C4A96A", "#5A4D3A"] },
   { value: "t3chat", label: "T3", colors: ["#2A1F35", "#9B2B5A", "#4A2D5A"] },
-  { value: "claudedark", label: "CD", colors: ["#352F28", "#C07A3E", "#2A2520"] },
-  { value: "claudelight", label: "CL", colors: ["#F5F0E8", "#B86030", "#E8DDD0"] },
-  { value: "neutrallight", label: "NL", colors: ["#FFFFFF", "#BF6E35", "#F1F1F1"] },
-  { value: "neutraldark", label: "ND", colors: ["#252525", "#9C5B2C", "#434343"] },
+  {
+    value: "claudedark",
+    label: "CD",
+    colors: ["#352F28", "#C07A3E", "#2A2520"],
+  },
+  {
+    value: "claudelight",
+    label: "CL",
+    colors: ["#F5F0E8", "#B86030", "#E8DDD0"],
+  },
+  {
+    value: "neutrallight",
+    label: "NL",
+    colors: ["#FFFFFF", "#BF6E35", "#F1F1F1"],
+  },
+  {
+    value: "neutraldark",
+    label: "ND",
+    colors: ["#252525", "#9C5B2C", "#434343"],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -333,7 +348,7 @@ function ChatItemRow({
             onMouseEnter={onPrefetch}
             onFocus={onPrefetch}
             className={cn(
-              "flex items-center gap-2 flex-1 min-w-0 px-2 py-1 text-left",
+              "flex items-center gap-2 flex-1 min-w-0 px-2 py-1.5 text-left",
               isActive && "font-medium",
             )}
           >
@@ -346,7 +361,7 @@ function ChatItemRow({
               ref={triggerRef}
               variant="ghost"
               size="icon"
-              className="h-7 w-7 opacity-60 hover:opacity-100 text-muted-foreground hover:text-foreground bg-transparent! shrink-0 mr-1 transition-opacity duration-150 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="h-7 w-7 opacity-60 hover:opacity-100 data-[state=open]:opacity-100 text-muted-foreground hover:text-foreground bg-transparent! shrink-0 mr-1 transition-opacity duration-150 focus-visible:ring-0 focus-visible:ring-offset-0"
               onClick={(e) => e.stopPropagation()}
             >
               <Icon icon="solar:menu-dots-bold" className="h-4 w-4" />
@@ -468,9 +483,11 @@ export const AppSidebar = memo(function AppSidebar({
       router.push("/sign-in");
       return;
     }
+    // Already on a fresh new chat — do nothing
+    if (pathname === "/" || pathname === "/new") return;
     onNewChat?.();
-    router.push(chatHomePath);
-  }, [closeMobileSidebar, onNewChat, user, router]);
+    router.push(newChatPath);
+  }, [closeMobileSidebar, onNewChat, user, router, pathname]);
 
   const handleTogglePin = useCallback(
     (chatId: string) => {
@@ -496,7 +513,10 @@ export const AppSidebar = memo(function AppSidebar({
 
     setIsRenaming(true);
     try {
-      await renameMutation({ chatId: renameTarget.id as Id<"chats">, title: next });
+      await renameMutation({
+        chatId: renameTarget.id as Id<"chats">,
+        title: next,
+      });
     } finally {
       setIsRenaming(false);
       closeRenameDialog();
@@ -564,23 +584,23 @@ export const AppSidebar = memo(function AppSidebar({
       <SidebarHeader className="p-0! pt-1! pb-1!">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="relative flex items-center group-data-[collapsible=icon]:justify-center w-full h-10 px-2 overflow-visible">
+            <div className="relative flex items-center group-data-[collapsible=icon]:justify-center w-full h-12 px-2 overflow-visible">
               <Button
                 variant="ghost"
                 className="h-auto w-fit group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center py-1 px-2 justify-start hover:bg-primary/10!"
                 onClick={handleNewChat}
               >
                 <div className="inline-flex items-center gap-1.5 w-fit group-data-[collapsible=icon]:justify-center">
-                  <div className="flex items-center justify-center size-5 group-data-[collapsible=icon]:mx-auto shrink-0 transition-all duration-200">
+                  <div className="flex items-center justify-center size-6 group-data-[collapsible=icon]:mx-auto shrink-0 transition-all duration-200">
                     <img
                       src="/Black.svg"
                       alt="OneGPT"
-                      className="size-5 logo-dark"
+                      className="size-6 logo-dark"
                     />
                     <img
                       src="/white.svg"
                       alt="OneGPT"
-                      className="size-5 hidden logo-light"
+                      className="size-6 hidden logo-light"
                     />
                   </div>
                   <div className="flex flex-row items-center gap-2 leading-none group-data-[collapsible=icon]:hidden">
@@ -598,7 +618,7 @@ export const AppSidebar = memo(function AppSidebar({
       {/* ----------------------------------------------------------------- */}
       {/* Static nav (New Chat + Recent label)                              */}
       {/* ----------------------------------------------------------------- */}
-      <SidebarGroup className="p-2 pt-0 pb-0 gap-0 shrink-0">
+      <SidebarGroup className="p-2 pb-0 gap-0 shrink-0">
         <SidebarMenu className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
           {/* New Chat */}
           <SidebarMenuItem>
@@ -607,7 +627,7 @@ export const AppSidebar = memo(function AppSidebar({
               className="bg-primary/10 hover:bg-primary/20 text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98] group-data-[collapsible=icon]:justify-center"
               onClick={handleNewChat}
             >
-              <span className="text-lg leading-none">+</span>
+              <Icon icon="tabler:plus" className="size-4" />
               <span className="group-data-[collapsible=icon]:hidden">
                 New Chat
               </span>
@@ -619,7 +639,7 @@ export const AppSidebar = memo(function AppSidebar({
         <button
           type="button"
           onClick={() => setIsRecentCollapsed((prev) => !prev)}
-          className="px-2 pt-4 pb-1 group-data-[collapsible=icon]:hidden flex w-full items-center justify-between text-left text-muted-foreground/80 hover:text-foreground transition-colors"
+          className="px-2 pt-3 pb-1 group-data-[collapsible=icon]:hidden flex w-full items-center justify-between text-left text-muted-foreground/80 hover:text-foreground transition-colors"
           aria-expanded={!isRecentCollapsed}
         >
           <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
@@ -658,9 +678,9 @@ export const AppSidebar = memo(function AppSidebar({
                 <>
                   {/* Pinned chats */}
                   {pinnedChats.length > 0 && (
-                    <div className="mb-1">
-                      <div className="px-2 py-0.5">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
+                    <div className="mb-2">
+                      <div className="px-2 py-1">
+                        <span className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-[0.12em]">
                           Pinned
                         </span>
                       </div>
@@ -670,9 +690,9 @@ export const AppSidebar = memo(function AppSidebar({
 
                   {/* Date-grouped chats */}
                   {groupedChats.map((group) => (
-                    <div key={group.label} className="mb-1">
-                      <div className="px-2 py-0.5">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.12em]">
+                    <div key={group.label} className="mb-2">
+                      <div className="px-2 py-1">
+                        <span className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-[0.12em]">
                           {group.label}
                         </span>
                       </div>
@@ -701,7 +721,7 @@ export const AppSidebar = memo(function AppSidebar({
         <SidebarGroup className="p-0 mt-auto">
           <SidebarGroupContent>
             {/* Expanded state */}
-            <div className="group-data-[collapsible=icon]:hidden px-3 pb-2">
+            <div className="group-data-[collapsible=icon]:hidden px-2 pb-2">
               <Link
                 prefetch={true}
                 href="/pricing"
@@ -774,12 +794,12 @@ export const AppSidebar = memo(function AppSidebar({
                                 .toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex flex-col gap-0.5 leading-none flex-1 min-w-0 items-start">
+                          <div className="flex flex-col gap-0.25 leading-none flex-1 min-w-0 items-start">
                             <span className="font-semibold text-sm truncate text-sidebar-foreground text-left w-full">
                               {userName}
                             </span>
                             <span className="text-xs text-sidebar-foreground/70 truncate text-left w-full">
-                              {userEmail}
+                              {isProUser ? "OneGPT Pro" : "OneGPT Free"}
                             </span>
                           </div>
                         </div>

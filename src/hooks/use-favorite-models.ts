@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "onegpt-favorite-models";
 const DEFAULT_FAVORITES = [

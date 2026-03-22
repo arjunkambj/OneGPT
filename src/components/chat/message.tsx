@@ -7,10 +7,13 @@ import { toast } from "sonner";
 import { getModelConfig } from "@/constant/ai-model";
 import type { ChatMessage, MessagePart } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Markdown } from "./markdown";
 import { ModelSelector } from "./model-selector";
+import { TextSelectionPopup } from "./text-selection-popup";
 
 export interface AssistantBranchState {
   siblingIndex: number;
@@ -24,6 +27,7 @@ interface MessageProps {
   message: ChatMessage;
   isLast: boolean;
   branchState?: AssistantBranchState | null;
+  onQuote?: (text: string) => void;
 }
 
 function CopyMessageButton({ text }: { text: string }) {
@@ -152,7 +156,8 @@ function ReasoningSection({
           onClick={() => !isThinking && setExpandedOverride(!isExpanded)}
           className={cn(
             "flex items-center gap-1.5 py-1 text-muted-foreground/60",
-            !isThinking && "cursor-pointer transition-colors hover:text-muted-foreground",
+            !isThinking &&
+              "cursor-pointer transition-colors hover:text-muted-foreground",
           )}
         >
           {isThinking ? (
@@ -228,14 +233,116 @@ function ErrorDisplay({ error }: { error: string }) {
   );
 }
 
-function ModelLabel({ model }: { model?: string }) {
-  if (!model) return null;
+function ResponseInfoButton({ message }: { message: ChatMessage }) {
+  const hasMetadata =
+    message.model ||
+    message.inputTokens ||
+    message.outputTokens ||
+    message.totalTokens ||
+    message.completionTime;
+  if (!hasMetadata) return null;
 
-  const config = getModelConfig(model);
+  const config = message.model ? getModelConfig(message.model) : undefined;
+  const modelLabel = config?.label ?? message.model;
+  const completionSeconds =
+    message.completionTime != null
+      ? (message.completionTime / 1000).toFixed(1)
+      : null;
+  const tokenTotal =
+    (message.totalTokens ??
+      (message.inputTokens ?? 0) + (message.outputTokens ?? 0)) ||
+    null;
+
   return (
-    <span className="text-xs text-muted-foreground">
-      {config?.label ?? model}
-    </span>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          aria-label="Response info"
+        >
+          <Icon icon="solar:info-circle-linear" className="h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent side="top" align="start" sideOffset={8} className="w-72">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Icon icon="solar:info-circle-linear" className="h-4 w-4" />
+            <h4 className="text-sm font-semibold">Response Info</h4>
+          </div>
+
+          {modelLabel && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Model</span>
+              <Badge className="gap-1">
+                <Icon icon="solar:cpu-bolt-linear" className="h-3 w-3" />
+                {modelLabel}
+              </Badge>
+            </div>
+          )}
+
+          {completionSeconds && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Generation Time
+              </span>
+              <div className="flex items-center gap-1 text-xs">
+                <Icon icon="solar:clock-circle-linear" className="h-3 w-3" />
+                {completionSeconds}s
+              </div>
+            </div>
+          )}
+
+          {(message.inputTokens != null || message.outputTokens != null) && (
+            <div className="space-y-2">
+              <span className="text-sm text-muted-foreground">Token Usage</span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {message.inputTokens != null && (
+                  <div className="flex items-center justify-between rounded-lg bg-muted px-2 py-1">
+                    <span className="flex items-center gap-1">
+                      <Icon
+                        icon="solar:arrow-left-linear"
+                        className="h-3 w-3"
+                      />
+                      Input
+                    </span>
+                    <span className="font-medium">
+                      {message.inputTokens.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {message.outputTokens != null && (
+                  <div className="flex items-center justify-between rounded-lg bg-muted px-2 py-1">
+                    <span className="flex items-center gap-1">
+                      <Icon
+                        icon="solar:arrow-right-linear"
+                        className="h-3 w-3"
+                      />
+                      Output
+                    </span>
+                    <span className="font-medium">
+                      {message.outputTokens.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {tokenTotal != null && (
+                <div className="flex items-center justify-between rounded-lg bg-accent px-2 py-1 text-xs">
+                  <span className="flex items-center gap-1 font-medium">
+                    <Icon icon="solar:hashtag-linear" className="h-3 w-3" />
+                    Total
+                  </span>
+                  <span className="font-semibold">
+                    {tokenTotal.toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -271,6 +378,18 @@ function RetryWithModelButton({
   );
 }
 
+function getHostname(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function getFavicon(hostname: string) {
+  return `/api/proxy-image?url=${encodeURIComponent(`https://www.google.com/s2/favicons?domain=${hostname}&sz=64`)}`;
+}
+
 function SourcesSection({
   parts,
 }: {
@@ -278,35 +397,77 @@ function SourcesSection({
 }) {
   if (parts.length === 0) return null;
 
+  const uniqueSources = parts.reduce<
+    Extract<MessagePart, { type: "source-url" }>[]
+  >((acc, part) => {
+    if (!acc.some((s) => s.url === part.url)) acc.push(part);
+    return acc;
+  }, []);
+
   return (
-    <div className="mt-4 rounded-xl border border-border/60 bg-background/70 p-3">
-      <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-        <Icon icon="solar:link-round-angle-linear" className="h-3.5 w-3.5" />
+    <div className="mt-4 rounded-xl border border-border/60 bg-background/70 p-4">
+      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
+        <Icon icon="solar:global-linear" className="h-3.5 w-3.5" />
         Sources
       </div>
 
-      <div className="space-y-2">
-        {parts.map((part) => (
-          <a
-            key={`${part.sourceId}-${part.url}`}
-            href={part.url}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 transition-colors hover:bg-muted"
-          >
-            <div className="mt-0.5 rounded-full bg-foreground/6 p-1">
-              <Icon icon="solar:globe-linear" className="h-3.5 w-3.5" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">
-                {part.title ?? part.url}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {part.url}
-              </p>
-            </div>
-          </a>
-        ))}
+      <div className="grid gap-2.5">
+        {uniqueSources.map((part, index) => {
+          const hostname = getHostname(part.url);
+          const displayTitle =
+            part.title?.trim() && part.title !== part.url
+              ? part.title
+              : hostname
+                  .split(".")
+                  .filter(Boolean)
+                  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                  .join(" · ");
+
+          return (
+            <a
+              key={`${part.sourceId}-${part.url}`}
+              href={part.url}
+              target="_blank"
+              rel="noreferrer"
+              className="group block overflow-hidden rounded-xl border border-border/60 bg-card/30 p-3 transition-colors hover:bg-accent/40 hover:border-border"
+            >
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-6 min-w-6 items-center justify-center rounded-md bg-muted text-[11px] font-medium text-muted-foreground tabular-nums">
+                  {index + 1}
+                </div>
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/50 bg-background/80 overflow-hidden">
+                  <img
+                    src={getFavicon(hostname)}
+                    alt=""
+                    className="size-4 rounded shrink-0"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
+                        {displayTitle}
+                      </div>
+                      <div className="mt-1 flex items-center gap-1.5 min-w-0 text-[11px] text-muted-foreground">
+                        <span className="truncate">{hostname}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="mt-2 truncate text-[11px] text-muted-foreground/80"
+                    title={part.url}
+                  >
+                    {part.url}
+                  </div>
+                </div>
+              </div>
+            </a>
+          );
+        })}
       </div>
     </div>
   );
@@ -327,24 +488,108 @@ export const Message = React.memo(function Message({
   message,
   isLast,
   branchState,
+  onQuote,
 }: MessageProps) {
   if (message.role === "user") {
     const text = getTextContent(message.parts);
 
+    // Collect file parts from parts array
+    const fileParts = message.parts.filter(
+      (p): p is Extract<MessagePart, { type: "file" }> => p.type === "file",
+    );
+    // Also include stored attachments
+    const attachmentImages = (message.attachments ?? []).filter(
+      (a) =>
+        a.mediaType?.startsWith("image/") ||
+        a.contentType?.startsWith("image/"),
+    );
+    const attachmentFiles = (message.attachments ?? []).filter(
+      (a) =>
+        !a.mediaType?.startsWith("image/") &&
+        !a.contentType?.startsWith("image/"),
+    );
+
+    const imageFileParts = fileParts.filter((fp) =>
+      fp.mediaType.startsWith("image/"),
+    );
+    const nonImageFileParts = fileParts.filter(
+      (fp) => !fp.mediaType.startsWith("image/"),
+    );
+
+    const hasImages = imageFileParts.length > 0 || attachmentImages.length > 0;
+    const hasNonImageFiles =
+      nonImageFileParts.length > 0 || attachmentFiles.length > 0;
+
     return (
-      <div className="flex justify-end">
+      <div className="group/message flex justify-end">
         <div className="max-w-[85%]">
-          <div className="rounded-md bg-accent/80 px-4 py-2.5">
-            <p className="whitespace-pre-wrap break-words text-foreground">
-              {text}
-            </p>
-          </div>
-          {message.mode === "search" && (
-            <div className="mt-2 flex justify-end">
-              <span className="inline-flex items-center gap-1 rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 py-1 text-[11px] font-medium text-sky-700 dark:text-sky-300">
-                <Icon icon="solar:magnifer-linear" className="h-3 w-3" />
-                Search
-              </span>
+          {/* Image attachments */}
+          {hasImages && (
+            <div className="flex flex-wrap gap-2 mb-2 justify-end">
+              {imageFileParts.map((fp) => (
+                // biome-ignore lint/performance/noImgElement: data URLs rendered directly
+                <img
+                  key={`file-${fp.filename ?? fp.url.slice(-20)}`}
+                  src={fp.url}
+                  alt={fp.filename ?? "uploaded image"}
+                  className="max-h-48 max-w-full rounded-lg object-cover"
+                />
+              ))}
+              {attachmentImages.map((att) => (
+                // biome-ignore lint/performance/noImgElement: data URLs rendered directly
+                <img
+                  key={`att-${att.name}-${att.url.slice(-20)}`}
+                  src={att.url}
+                  alt={att.name}
+                  className="max-h-48 max-w-full rounded-lg object-cover"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Non-image file chips */}
+          {hasNonImageFiles && (
+            <div className="flex flex-wrap gap-1.5 mb-2 justify-end">
+              {nonImageFileParts.map((fp) => (
+                <div
+                  key={`nif-${fp.filename ?? fp.url.slice(-20)}`}
+                  className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs"
+                >
+                  <Icon
+                    icon="solar:file-text-linear"
+                    className="size-3.5 text-muted-foreground"
+                  />
+                  <span className="truncate max-w-[150px]">
+                    {fp.filename ?? "file"}
+                  </span>
+                </div>
+              ))}
+              {attachmentFiles.map((att) => (
+                <div
+                  key={`naf-${att.name}-${att.url.slice(-20)}`}
+                  className="flex items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs"
+                >
+                  <Icon
+                    icon="solar:file-text-linear"
+                    className="size-3.5 text-muted-foreground"
+                  />
+                  <span className="truncate max-w-[150px]">{att.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Text bubble */}
+          {text && (
+            <div className="rounded-md bg-accent/80 px-4 py-2.5">
+              <p className="whitespace-pre-wrap break-words text-foreground">
+                {text}
+              </p>
+            </div>
+          )}
+          {text && (
+            <div className="mt-1 flex justify-end opacity-0 transition-opacity duration-200 group-hover/message:opacity-100">
+              <CopyMessageButton text={text} />
             </div>
           )}
         </div>
@@ -361,43 +606,46 @@ export const Message = React.memo(function Message({
 
     return (
       <div className={cn("group/message", isLast && "min-h-[200px]")}>
-        <div className="space-y-1">
-          {message.parts.map((part, index) => {
-            const key = `${message.id}-part-${index}`;
+        <TextSelectionPopup onQuote={onQuote}>
+          <div className="space-y-1">
+            {message.parts.map((part, index) => {
+              const key = `${message.id}-part-${index}`;
 
-            if (part.type === "reasoning") {
-              return (
-                <ReasoningSection
-                  key={key}
-                  reasoning={part.reasoning}
-                  details={part.details}
-                  state={part.state}
-                />
-              );
-            }
+              if (part.type === "reasoning") {
+                return (
+                  <ReasoningSection
+                    key={key}
+                    reasoning={part.reasoning}
+                    details={part.details}
+                    state={part.state}
+                  />
+                );
+              }
 
-            if (part.type === "text" && part.text.trim()) {
-              return (
-                <div key={key}>
-                  <Markdown content={part.text} />
-                </div>
-              );
-            }
+              if (part.type === "text" && part.text.trim()) {
+                return (
+                  <div key={key}>
+                    <Markdown content={part.text} />
+                  </div>
+                );
+              }
 
-            if (part.type === "error") {
-              return <ErrorDisplay key={key} error={part.error} />;
-            }
+              if (part.type === "error") {
+                return <ErrorDisplay key={key} error={part.error} />;
+              }
 
-            return null;
-          })}
+              return null;
+            })}
 
-          <SourcesSection parts={sourceParts} />
+            <SourcesSection parts={sourceParts} />
+          </div>
+        </TextSelectionPopup>
 
-          <div className="mt-2 flex flex-wrap items-center gap-1 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover/message:opacity-100">
-            <ModelLabel model={message.model} />
+        <div className="mt-1.5 flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover/message:opacity-100">
             {textContent ? <CopyMessageButton text={textContent} /> : null}
             {branchState?.siblingCount && branchState.siblingCount > 1 ? (
-              <div className="flex items-center gap-1 rounded-full border border-border/60 bg-background/70 px-1 py-1">
+              <div className="flex items-center gap-0.5 rounded-full border border-border/60 bg-background/70 px-1 py-0.5">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -410,7 +658,7 @@ export const Message = React.memo(function Message({
                     className="h-3.5 w-3.5"
                   />
                 </Button>
-                <span className="px-1 text-xs text-muted-foreground">
+                <span className="px-0.5 text-xs text-muted-foreground">
                   {branchState.siblingIndex + 1} / {branchState.siblingCount}
                 </span>
                 <Button
@@ -431,7 +679,13 @@ export const Message = React.memo(function Message({
               onRetryWithModel={branchState?.onRetryWithModel}
               currentModel={message.model}
             />
+            <ResponseInfoButton message={message} />
           </div>
+          {message.model && (
+            <span className="ml-auto text-[11px] text-muted-foreground/50">
+              {getModelConfig(message.model)?.label ?? message.model}
+            </span>
+          )}
         </div>
       </div>
     );

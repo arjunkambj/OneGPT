@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { FeatureComparison } from "./feature-comparison";
+import { PlanCardFree } from "./plan-card-free";
+import { PlanCardMax } from "./plan-card-max";
+import { PlanCardPro } from "./plan-card-pro";
 import { PricingHeader } from "./pricing-header";
 import { PricingHero } from "./pricing-hero";
-import { PlanCardFree } from "./plan-card-free";
-import { PlanCardPro } from "./plan-card-pro";
-import { PlanCardMax } from "./plan-card-max";
-import { FeatureComparison } from "./feature-comparison";
 import { TrustSignals } from "./trust-signals";
 
 export default function PricingTable() {

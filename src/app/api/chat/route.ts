@@ -9,6 +9,7 @@ import {
 } from "ai";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { after } from "next/server";
+import { buildSystemPrompt } from "@/lib/ai/build-system-prompt";
 import {
   getOpenRouterProviderOptions,
   isSupportedModel,
@@ -41,12 +42,21 @@ type StoredPart =
     }
   | { type: "error"; error: string };
 
+type StoredAttachment = {
+  name: string;
+  contentType?: string;
+  mediaType?: string;
+  url: string;
+  size: number;
+};
+
 type StoredMessage = {
   _id: string;
   parentMessageId?: string;
   role: "user" | "assistant" | "system";
   mode?: ChatMode;
   parts: StoredPart[];
+  attachments?: StoredAttachment[];
   createdAt: number;
 };
 
@@ -100,6 +110,19 @@ function isSourceUrlPart(part: unknown): part is SourcePart {
   );
 }
 
+function isFilePart(
+  part: unknown,
+): part is { type: "file"; mediaType: string; url: string; filename?: string } {
+  return (
+    typeof part === "object" &&
+    part !== null &&
+    "type" in part &&
+    part.type === "file" &&
+    "url" in part &&
+    typeof part.url === "string"
+  );
+}
+
 function isUIMessageArray(value: unknown): value is UIMessage[] {
   return Array.isArray(value);
 }
@@ -116,28 +139,39 @@ function getTextFromParts(parts: Array<{ type: "text"; text: string }>) {
 }
 
 function toUIMessage(message: StoredMessage): UIMessage {
+  const parts = message.parts.reduce<UIMessage["parts"]>((acc, part) => {
+    if (part.type === "text") {
+      acc.push({ type: "text" as const, text: part.text });
+    } else if (part.type === "reasoning") {
+      acc.push({ type: "reasoning" as const, text: part.reasoning });
+    } else if (part.type === "source-url") {
+      acc.push({
+        type: "source-url" as const,
+        sourceId: part.sourceId,
+        url: part.url,
+        title: part.title,
+      });
+    }
+    return acc;
+  }, []);
+
+  // Reconstruct file parts from stored attachments (needed for regeneration)
+  if (message.attachments?.length) {
+    for (const att of message.attachments) {
+      parts.push({
+        type: "file" as const,
+        mediaType:
+          att.mediaType ?? att.contentType ?? "application/octet-stream",
+        url: att.url,
+        filename: att.name,
+      });
+    }
+  }
+
   return {
     id: message._id,
     role: message.role as "user" | "assistant",
-    parts: message.parts.reduce<UIMessage["parts"]>((parts, part) => {
-      if (part.type === "text") {
-        parts.push({ type: "text" as const, text: part.text });
-        return parts;
-      }
-      if (part.type === "reasoning") {
-        parts.push({ type: "reasoning" as const, text: part.reasoning });
-        return parts;
-      }
-      if (part.type === "source-url") {
-        parts.push({
-          type: "source-url" as const,
-          sourceId: part.sourceId,
-          url: part.url,
-          title: part.title,
-        });
-      }
-      return parts;
-    }, []),
+    parts,
   };
 }
 
@@ -268,35 +302,6 @@ function buildSourceParts(results: ExaSearchResult[]): SourcePart[] {
   }));
 }
 
-function buildSearchSystemPrompt(results: ExaSearchResult[]) {
-  const formattedResults = results
-    .map((result, index) => {
-      const snippets = (result.highlights ?? [])
-        .map((highlight) => `- ${highlight}`)
-        .join("\n");
-      const text = result.text?.trim();
-
-      return [
-        `Source ${index + 1}: ${result.title ?? result.url}`,
-        `URL: ${result.url}`,
-        snippets || (text ? `Excerpt: ${text.slice(0, 900)}` : ""),
-      ]
-        .filter(Boolean)
-        .join("\n");
-    })
-    .join("\n\n");
-
-  return [
-    "You are answering with grounded web research.",
-    "Use only the provided search evidence for factual claims.",
-    "If the sources are incomplete or conflicting, say so plainly.",
-    "Do not invent citations or facts not supported by the evidence.",
-    "",
-    "Search evidence:",
-    formattedResults,
-  ].join("\n");
-}
-
 function buildAssistantPartsFromMessage(message: UIMessage): StoredPart[] {
   return message.parts.reduce<StoredPart[]>((parts, part) => {
     if (isTextPart(part)) {
@@ -348,29 +353,6 @@ async function persistAssistantError({
   );
 }
 
-function createErrorStreamResponse({
-  messages,
-  errorText,
-}: {
-  messages: UIMessage[];
-  errorText: string;
-}) {
-  const stream = createUIMessageStream({
-    originalMessages: messages,
-    execute({ writer }) {
-      writer.write({ type: "text-start", id: "error-text" });
-      writer.write({
-        type: "text-delta",
-        id: "error-text",
-        delta: errorText,
-      });
-      writer.write({ type: "text-end", id: "error-text" });
-    },
-  });
-
-  return createUIMessageStreamResponse({ stream });
-}
-
 export async function POST(req: Request) {
   const user = await stackServerApp.getUser({ tokenStore: req });
   if (!user) return new Response("Unauthorized", { status: 401 });
@@ -404,20 +386,16 @@ export async function POST(req: Request) {
   }
 
   const typedChatId = chatId as Id<"chats">;
-  const storedMessages = await fetchQuery(
-    api.messages.getMessages,
-    { chatId: typedChatId },
-    { token },
-  );
+  const [storedMessages, storedChat, customInstructions] = await Promise.all([
+    fetchQuery(api.messages.getMessages, { chatId: typedChatId }, { token }),
+    fetchQuery(api.chats.getChat, { chatId: typedChatId }, { token }),
+    fetchQuery(api.customInstructions.getCustomInstructions, {}, { token }),
+  ]);
+
   if (!storedMessages) {
     return new Response("Chat not found", { status: 404 });
   }
 
-  const storedChat = await fetchQuery(
-    api.chats.getChat,
-    { chatId: typedChatId },
-    { token },
-  );
   if (!storedChat) {
     return new Response("Chat not found", { status: 404 });
   }
@@ -428,7 +406,7 @@ export async function POST(req: Request) {
   const isRegenerate = trigger === "regenerate-message";
   const latestUserMessage = [...messages].reverse().find((candidate) => {
     if (candidate.role !== "user") return false;
-    return candidate.parts.some(isTextPart);
+    return candidate.parts.some((p) => isTextPart(p) || isFilePart(p));
   });
 
   let requestMode: ChatMode = isChatMode(mode) ? mode : "chat";
@@ -480,9 +458,31 @@ export async function POST(req: Request) {
       .filter(isTextPart)
       .map((part) => ({ type: "text" as const, text: part.text }));
     currentUserText = getTextFromParts(latestUserParts);
-    if (!currentUserText) {
-      return new Response("Missing user text", { status: 400 });
+
+    // Extract file parts from user message
+    const latestUserFileParts = latestUserMessage.parts
+      .filter(isFilePart)
+      .map((part) => ({
+        type: "file" as const,
+        mediaType: (part as { mediaType: string }).mediaType,
+        url: (part as { url: string }).url,
+        filename: (part as { filename?: string }).filename,
+      }));
+
+    const hasFiles = latestUserFileParts.length > 0;
+    if (!currentUserText && !hasFiles) {
+      return new Response("Missing user content", { status: 400 });
     }
+
+    // Build attachments for Convex persistence
+    const attachments = hasFiles
+      ? latestUserFileParts.map((fp) => ({
+          name: fp.filename ?? "unnamed",
+          mediaType: fp.mediaType,
+          url: fp.url,
+          size: Math.ceil((fp.url.length * 3) / 4),
+        }))
+      : undefined;
 
     const branchLeafId =
       typeof parentMessageId === "string" && parentMessageId.length > 0
@@ -497,6 +497,7 @@ export async function POST(req: Request) {
         parentMessageId: branchLeafId as Id<"messages"> | undefined,
         mode: requestMode,
         parts: latestUserParts,
+        attachments,
       },
       { token },
     );
@@ -507,12 +508,18 @@ export async function POST(req: Request) {
       { token },
     );
 
+    // Include both text and file parts in the request messages for the model
+    const userMessageParts: UIMessage["parts"] = [
+      ...latestUserParts,
+      ...latestUserFileParts,
+    ];
+
     requestMessages = [
       ...parentPath.map(toUIMessage),
       {
         id: currentUserMessageId,
         role: "user",
-        parts: latestUserParts,
+        parts: userMessageParts,
       },
     ];
     shouldGenerateTitle =
@@ -526,58 +533,7 @@ export async function POST(req: Request) {
     totalTokens?: number;
   } = {};
 
-  let sourceParts: SourcePart[] = [];
-  let systemPrompt: string | undefined;
-
-  if (requestMode === "search") {
-    try {
-      const queries = await generateSearchQueries({
-        userText: currentUserText,
-        model: openRouterModelId,
-        providerOptions: openRouterProviderOptions,
-      });
-      const searchResults = await searchExa(queries);
-      if (searchResults.length === 0) {
-        throw new Error("No relevant search results were found.");
-      }
-
-      sourceParts = buildSourceParts(searchResults);
-      systemPrompt = buildSearchSystemPrompt(searchResults);
-    } catch (error) {
-      const errorText =
-        error instanceof Error
-          ? error.message
-          : "Search failed before the answer could be generated.";
-
-      await persistAssistantError({
-        chatId: typedChatId,
-        token,
-        parentMessageId: currentUserMessageId,
-        mode: requestMode,
-        model,
-        errorText,
-      });
-
-      return createErrorStreamResponse({
-        messages,
-        errorText,
-      });
-    }
-  }
-
-  const result = streamText({
-    model: openrouter(openRouterModelId),
-    providerOptions: openRouterProviderOptions,
-    system: systemPrompt,
-    messages: await convertToModelMessages(requestMessages),
-    onFinish: ({ usage }) => {
-      tokenUsage = {
-        inputTokens: usage.inputTokens,
-        outputTokens: usage.outputTokens,
-        totalTokens: usage.totalTokens,
-      };
-    },
-  });
+  const modelMessages = await convertToModelMessages(requestMessages);
 
   const stream = createUIMessageStream({
     originalMessages: messages,
@@ -609,7 +565,8 @@ export async function POST(req: Request) {
         }
       }
 
-      if (!shouldGenerateTitle || !currentUserText) return;
+      if (!shouldGenerateTitle) return;
+      if (!currentUserText) return;
 
       after(async () => {
         try {
@@ -630,7 +587,71 @@ export async function POST(req: Request) {
         }
       });
     },
-    execute({ writer }) {
+    async execute({ writer }) {
+      let searchResults: ExaSearchResult[] = [];
+      let sourceParts: SourcePart[] = [];
+
+      if (requestMode === "search") {
+        try {
+          writer.write({
+            type: "data-search-status",
+            data: { phase: "generating-queries" },
+          } as never);
+
+          const queries = await generateSearchQueries({
+            userText: currentUserText,
+            model: openRouterModelId,
+            providerOptions: openRouterProviderOptions,
+          });
+
+          writer.write({
+            type: "data-search-status",
+            data: { phase: "searching", queries },
+          } as never);
+
+          searchResults = await searchExa(queries);
+          if (searchResults.length === 0) {
+            throw new Error("No relevant search results were found.");
+          }
+
+          sourceParts = buildSourceParts(searchResults);
+
+          writer.write({
+            type: "data-search-status",
+            data: {
+              phase: "complete",
+              resultCount: searchResults.length,
+            },
+          } as never);
+        } catch (error) {
+          const errorText =
+            error instanceof Error
+              ? error.message
+              : "Search failed before the answer could be generated.";
+
+          await persistAssistantError({
+            chatId: typedChatId,
+            token,
+            parentMessageId: currentUserMessageId,
+            mode: requestMode,
+            model,
+            errorText,
+          });
+
+          writer.write({
+            type: "text-start",
+            id: "error-text",
+          } as never);
+          writer.write({
+            type: "text-delta",
+            id: "error-text",
+            delta: errorText,
+          } as never);
+          writer.write({ type: "text-end", id: "error-text" } as never);
+          return;
+        }
+      }
+
       for (const sourcePart of sourceParts) {
         writer.write({
           type: "source-url",
@@ -640,9 +661,33 @@ export async function POST(req: Request) {
         });
       }
 
+      const systemPrompt = buildSystemPrompt({
+        mode: requestMode,
+        searchResults,
+        customInstructions: customInstructions
+          ? {
+              content: customInstructions.content,
+              isEnabled: customInstructions.isEnabled,
+            }
+          : null,
+      });
+
+      const result = streamText({
+        model: openrouter(openRouterModelId),
+        providerOptions: openRouterProviderOptions,
+        system: systemPrompt,
+        messages: modelMessages,
+        onFinish: ({ usage }) => {
+          tokenUsage = {
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            totalTokens: usage.totalTokens,
+          };
+        },
+      });
+
       writer.merge(
         result.toUIMessageStream({
-          originalMessages: messages,
           sendReasoning: true,
         }),
       );

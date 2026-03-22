@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import { Icon } from "@iconify/react";
+import React, { useCallback, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 
 interface MarkdownProps {
@@ -229,7 +229,9 @@ const components: Components = {
   },
 };
 
-export const Markdown = React.memo(function Markdown({ content }: MarkdownProps) {
+export const Markdown = React.memo(function Markdown({
+  content,
+}: MarkdownProps) {
   return (
     <div className="prose-sm max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>

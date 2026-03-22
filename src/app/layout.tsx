@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Figtree } from "next/font/google";
+import { Figtree, Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
-import { ThemeProvider } from "next-themes";
 import { StackProvider, StackTheme } from "@stackframe/stack";
-import { stackServerApp } from "@/stack/server";
+import { ThemeProvider } from "next-themes";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
+import { stackServerApp } from "@/stack/server";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -85,7 +85,15 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
-          themes={["light", "dark", "colourful", "t3chat", "claudedark", "claudelight", "neutrallight", "neutraldark"]}
+          themes={[
+            "light",
+            "dark",
+            "t3chat",
+            "claudedark",
+            "claudelight",
+            "neutrallight",
+            "neutraldark",
+          ]}
         >
           <StackProvider app={stackServerApp}>
             <StackTheme>

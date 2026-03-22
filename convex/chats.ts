@@ -1,5 +1,5 @@
-import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
+import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, requireCurrentUser } from "./lib/users";
 
@@ -75,7 +75,7 @@ export const updateChatTitle = mutation({
   handler: async (ctx, args) => {
     const user = await requireCurrentUser(ctx);
     const chat = await ctx.db.get(args.chatId);
-    if (!chat || chat.userId !== user._id) throw new Error("Chat not found");
+    if (!chat || chat.userId !== user._id) return;
     await ctx.db.patch(args.chatId, {
       title: args.title,
       updatedAt: Date.now(),

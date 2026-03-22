@@ -1,8 +1,8 @@
 "use client";
 
+import { Icon } from "@iconify/react";
 import { useStackApp } from "@stackframe/stack";
 import { useEffect, useState } from "react";
-import { Icon } from "@iconify/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

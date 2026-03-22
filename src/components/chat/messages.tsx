@@ -11,27 +11,32 @@ import {
   useState,
 } from "react";
 import { type AssistantBranchState, Message } from "@/components/chat/message";
+import { SearchProgressIndicator } from "@/components/chat/search-progress";
 import { Button } from "@/components/ui/button";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, SearchStatusData } from "@/lib/types";
 
 interface MessagesProps {
   messages: ChatMessage[];
   isLoading?: boolean;
+  searchStatus?: SearchStatusData | null;
   hasMoreOlder?: boolean;
   isLoadingOlder?: boolean;
   onLoadOlder?: () => Promise<void>;
   getAssistantBranchState?: (
     message: ChatMessage,
   ) => AssistantBranchState | null;
+  onQuote?: (text: string) => void;
 }
 
 const Messages: React.FC<MessagesProps> = ({
   messages,
   isLoading,
+  searchStatus,
   hasMoreOlder = false,
   isLoadingOlder = false,
   onLoadOlder,
   getAssistantBranchState,
+  onQuote,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -102,7 +107,7 @@ const Messages: React.FC<MessagesProps> = ({
 
   return (
     <div ref={containerRef} className="relative flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
+      <div className="mx-auto max-w-2xl px-4 py-8 pb-32 space-y-6">
         {hasMoreOlder && (
           <div className="flex justify-center">
             <Button
@@ -126,6 +131,7 @@ const Messages: React.FC<MessagesProps> = ({
                 ? (getAssistantBranchState?.(message) ?? null)
                 : null
             }
+            onQuote={message.role === "assistant" ? onQuote : undefined}
           />
         ))}
 
@@ -138,7 +144,10 @@ const Messages: React.FC<MessagesProps> = ({
               (p) =>
                 (p.type === "text" && p.text.trim()) || p.type === "reasoning",
             );
-          })() && (
+          })() &&
+          (searchStatus ? (
+            <SearchProgressIndicator status={searchStatus} />
+          ) : (
             <div className="flex items-center gap-2 text-muted-foreground">
               <div className="flex gap-1">
                 <span className="animate-bounce [animation-delay:-0.3s]">
@@ -151,7 +160,7 @@ const Messages: React.FC<MessagesProps> = ({
               </div>
               <span className="text-sm">Thinking...</span>
             </div>
-          )}
+          ))}
 
         <div ref={messagesEndRef} />
       </div>

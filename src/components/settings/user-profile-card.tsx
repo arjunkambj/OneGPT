@@ -29,7 +29,7 @@ export function UserProfileCard({
   if (variant === "mobile") {
     return (
       <div className="lg:hidden mb-6">
-        <Card className="p-4 shadow-none border-border/60">
+        <Card className="p-4 shadow-none border-none">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12 overflow-hidden rounded-full ring-2 ring-border/50 ring-offset-2 ring-offset-background">
               <AvatarImage src={userImage} />
@@ -53,7 +53,7 @@ export function UserProfileCard({
           </div>
           <div className="mt-3">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               className="w-full gap-2 text-muted-foreground hover:text-foreground"
               onClick={onSignOut}
@@ -68,7 +68,7 @@ export function UserProfileCard({
   }
 
   return (
-    <Card className="p-6 shadow-none border-border/60">
+    <Card className="p-6 shadow-none border-none">
       <div className="flex flex-col items-center text-center space-y-4">
         <Avatar className="h-20 w-20 overflow-hidden rounded-full ring-2 ring-border/50 ring-offset-2 ring-offset-background">
           <AvatarImage src={userImage} />
@@ -85,7 +85,7 @@ export function UserProfileCard({
         </div>
         <div className="w-full pt-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             className="w-full gap-2 text-muted-foreground hover:text-foreground"
             onClick={onSignOut}

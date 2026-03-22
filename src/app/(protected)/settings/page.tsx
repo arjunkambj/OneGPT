@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SettingsContent } from "@/components/settings/settings-content";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SettingsPage() {
   return (

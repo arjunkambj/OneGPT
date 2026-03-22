@@ -44,9 +44,16 @@ export type MessagePart =
       result?: unknown;
       state: "pending" | "result" | "error";
     }
-  | { type: "error"; error: string };
+  | { type: "error"; error: string }
+  | { type: "file"; mediaType: string; url: string; filename?: string };
 
 export type ChatMode = "chat" | "search";
+
+export type SearchStatusData = {
+  phase: "generating-queries" | "searching" | "complete";
+  queries?: string[];
+  resultCount?: number;
+};
 
 export interface Chat {
   id: string;

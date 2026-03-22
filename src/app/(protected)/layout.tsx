@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarLayout } from "@/components/chat/sidebar-layout";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { stackServerApp } from "@/stack/server";
 

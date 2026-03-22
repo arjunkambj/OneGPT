@@ -1,22 +1,27 @@
 "use client";
 
 import { type UIMessage, useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type FileUIPart } from "ai";
 import { useConvex, useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
+import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormComponent } from "@/components/chat/form-component";
 import Messages from "@/components/chat/messages";
-import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { isSupportedModel } from "@/lib/ai/model-routing";
 import { chatHomePath, chatPath } from "@/lib/chat-routes";
-import type { ChatMessage, ChatMode } from "@/lib/types";
+import type {
+  Attachment,
+  ChatMessage,
+  ChatMode,
+  SearchStatusData,
+} from "@/lib/types";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -33,6 +38,7 @@ interface ChatInterfaceProps {
 interface PendingSubmission {
   chatId: string;
   text: string;
+  files?: FileUIPart[];
   mode: ChatMode;
   parentMessageId?: string;
 }
@@ -42,28 +48,46 @@ function getBranchKey(parentMessageId?: string) {
 }
 
 function toUIMessage(message: ChatMessage): UIMessage {
+  const parts = message.parts.reduce<UIMessage["parts"]>((acc, part) => {
+    if (part.type === "text") {
+      acc.push({ type: "text" as const, text: part.text });
+    } else if (part.type === "reasoning") {
+      acc.push({ type: "reasoning" as const, text: part.reasoning });
+    } else if (part.type === "source-url") {
+      acc.push({
+        type: "source-url" as const,
+        sourceId: part.sourceId,
+        url: part.url,
+        title: part.title,
+      });
+    } else if (part.type === "file") {
+      acc.push({
+        type: "file" as const,
+        mediaType: part.mediaType,
+        url: part.url,
+        filename: part.filename,
+      });
+    }
+    return acc;
+  }, []);
+
+  // Also include stored attachments as file parts
+  if (message.attachments?.length) {
+    for (const att of message.attachments) {
+      parts.push({
+        type: "file" as const,
+        mediaType:
+          att.mediaType ?? att.contentType ?? "application/octet-stream",
+        url: att.url,
+        filename: att.name,
+      });
+    }
+  }
+
   return {
     id: message.id,
     role: message.role as "user" | "assistant",
-    parts: message.parts.reduce<UIMessage["parts"]>((parts, part) => {
-      if (part.type === "text") {
-        parts.push({ type: "text" as const, text: part.text });
-        return parts;
-      }
-      if (part.type === "reasoning") {
-        parts.push({ type: "reasoning" as const, text: part.reasoning });
-        return parts;
-      }
-      if (part.type === "source-url") {
-        parts.push({
-          type: "source-url" as const,
-          sourceId: part.sourceId,
-          url: part.url,
-          title: part.title,
-        });
-      }
-      return parts;
-    }, []),
+    parts,
   };
 }
 
@@ -73,6 +97,7 @@ function fromStoredMessage(message: {
   role: "user" | "assistant" | "system";
   mode?: ChatMode;
   parts: ChatMessage["parts"];
+  attachments?: Attachment[];
   model?: string;
   inputTokens?: number;
   outputTokens?: number;
@@ -86,6 +111,7 @@ function fromStoredMessage(message: {
     role: message.role,
     mode: message.mode,
     parts: message.parts,
+    attachments: message.attachments,
     model: message.model,
     inputTokens: message.inputTokens,
     outputTokens: message.outputTokens,
@@ -180,6 +206,14 @@ function toDisplayMessage(
           providerMetadata: part.providerMetadata,
         };
       }
+      if (part.type === "file") {
+        return {
+          type: "file" as const,
+          mediaType: (part as FileUIPart).mediaType,
+          url: (part as FileUIPart).url,
+          filename: (part as FileUIPart).filename,
+        };
+      }
       return null;
     })
     .filter((part): part is NonNullable<typeof part> => part !== null);
@@ -193,6 +227,10 @@ function toDisplayMessage(
   };
 }
 
+function getLeafMessageId(messages: UIMessage[] | ChatMessage[]) {
+  return messages.at(-1)?.id;
+}
+
 export function ChatInterface({
   initialChatId,
   initialMessages = [],
@@ -202,6 +240,7 @@ export function ChatInterface({
 }: ChatInterfaceProps) {
   const router = useRouter();
   const convex = useConvex();
+  const { state: sidebarState } = useSidebar();
   const [chatId, setChatId] = useState<string | undefined>(initialChatId);
   const [selectedModel, setSelectedModel] = useLocalStorage(
     "selected-model",
@@ -225,6 +264,10 @@ export function ChatInterface({
   >();
   const [activeRequestMode, setActiveRequestMode] = useState<ChatMode | null>(
     null,
+  );
+  const [pendingFiles, setPendingFiles] = useState<FileUIPart[]>([]);
+  const lastAppliedStoredLeafIdRef = useRef<string | undefined>(
+    getLeafMessageId(initialMessages),
   );
 
   const createChat = useMutation(api.chats.createChat);
@@ -283,11 +326,7 @@ export function ChatInterface({
     () => visibleStoredMessages.map(toUIMessage),
     [visibleStoredMessages],
   );
-  const activeBranchId = useMemo(
-    () =>
-      `${chatId ?? "new-chat"}:${visibleStoredMessages.at(-1)?.id ?? "root"}`,
-    [chatId, visibleStoredMessages],
-  );
+  const chatSessionId = chatId ?? "new-chat";
 
   const assistantModelById = useMemo(() => {
     const modelsById = new Map<string, string>();
@@ -311,12 +350,13 @@ export function ChatInterface({
 
   const {
     messages: streamingMessages,
+    setMessages,
     sendMessage,
     regenerate,
     status,
     stop,
   } = useChat({
-    id: activeBranchId,
+    id: chatSessionId,
     messages: visibleStoredUiMessages,
     transport,
     experimental_throttle: 100,
@@ -335,6 +375,7 @@ export function ChatInterface({
     setSelectedChildByParentId({});
     setPendingFocusParentId(undefined);
     setActiveRequestMode(null);
+    setPendingFiles([]);
   }, [initialChatId, initialHasMoreOlder, initialNextCursor]);
 
   useEffect(() => {
@@ -403,6 +444,18 @@ export function ChatInterface({
   }, [status]);
 
   useEffect(() => {
+    const storedLeafId = getLeafMessageId(visibleStoredUiMessages);
+    if (storedLeafId === lastAppliedStoredLeafIdRef.current) return;
+
+    if (status !== "ready") {
+      stop();
+    }
+
+    setMessages(visibleStoredUiMessages);
+    lastAppliedStoredLeafIdRef.current = storedLeafId;
+  }, [setMessages, stop, status, visibleStoredUiMessages]);
+
+  useEffect(() => {
     if (!pendingSubmission || chatId !== pendingSubmission.chatId) return;
 
     const branchKey = getBranchKey(pendingSubmission.parentMessageId);
@@ -413,24 +466,28 @@ export function ChatInterface({
     );
     setActiveRequestMode(pendingSubmission.mode);
 
-    void sendMessage(
-      { text: pendingSubmission.text },
-      {
-        body: {
-          chatId: pendingSubmission.chatId,
-          model: selectedModel,
-          mode: pendingSubmission.mode,
-          parentMessageId: pendingSubmission.parentMessageId,
-        },
+    const sendArgs: { text: string; files?: FileUIPart[] } = {
+      text: pendingSubmission.text,
+    };
+    if (pendingSubmission.files?.length) {
+      sendArgs.files = pendingSubmission.files;
+    }
+    void sendMessage(sendArgs, {
+      body: {
+        chatId: pendingSubmission.chatId,
+        model: selectedModel,
+        mode: pendingSubmission.mode,
+        parentMessageId: pendingSubmission.parentMessageId,
       },
-    );
+    });
     setPendingSubmission(null);
   }, [chatId, pendingSubmission, selectedModel, sendMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const messageText = input.trim();
-    if (!messageText || isLoading) return;
+    const hasFiles = pendingFiles.length > 0;
+    if ((!messageText && !hasFiles) || isLoading) return;
 
     const lastVisibleMessage =
       visibleStoredMessages[visibleStoredMessages.length - 1];
@@ -438,6 +495,8 @@ export function ChatInterface({
       lastVisibleMessage?.role === "assistant"
         ? lastVisibleMessage.id
         : undefined;
+
+    const filesToSend = hasFiles ? [...pendingFiles] : undefined;
 
     let nextChatId = chatId;
     if (!nextChatId) {
@@ -447,26 +506,29 @@ export function ChatInterface({
       setPendingSubmission({
         chatId: nextChatId,
         text: messageText,
+        files: filesToSend,
         mode: searchMode,
         parentMessageId,
       });
     } else {
       setPendingFocusParentId(parentMessageId);
       setActiveRequestMode(searchMode);
-      void sendMessage(
-        { text: messageText },
-        {
-          body: {
-            chatId: nextChatId,
-            model: selectedModel,
-            mode: searchMode,
-            parentMessageId,
-          },
+      const sendArgs: { text: string; files?: FileUIPart[] } = {
+        text: messageText,
+      };
+      if (filesToSend) sendArgs.files = filesToSend;
+      void sendMessage(sendArgs, {
+        body: {
+          chatId: nextChatId,
+          model: selectedModel,
+          mode: searchMode,
+          parentMessageId,
         },
-      );
+      });
     }
 
     setInput("");
+    setPendingFiles([]);
     setSearchMode("chat");
   };
 
@@ -557,6 +619,20 @@ export function ChatInterface({
     ? displayedStreamingMessages
     : visibleStoredMessages;
 
+  const searchStatus = useMemo((): SearchStatusData | null => {
+    if (!isLoading || activeRequestMode !== "search") return null;
+    const lastMsg = streamingMessages[streamingMessages.length - 1];
+    if (!lastMsg || lastMsg.role !== "assistant") return null;
+    const dataPart = [...lastMsg.parts]
+      .reverse()
+      .find(
+        (p) =>
+          "type" in p && (p as { type: string }).type === "data-search-status",
+      );
+    if (!dataPart || !("data" in dataPart)) return null;
+    return (dataPart as { data: SearchStatusData }).data;
+  }, [isLoading, activeRequestMode, streamingMessages]);
+
   const getAssistantBranchState = useCallback(
     (message: ChatMessage) => {
       const branchKey = getBranchKey(message.parentMessageId);
@@ -596,10 +672,23 @@ export function ChatInterface({
     [childrenByParent, handleRetry, isLoading],
   );
 
+  const handleQuote = useCallback((text: string) => {
+    const quoted = `> ${text.split("\n").join("\n> ")}\n\n`;
+    setInput((prev) => quoted + prev);
+    setTimeout(() => {
+      const textarea = document.querySelector(
+        'textarea[placeholder*="Ask"]',
+      ) as HTMLTextAreaElement | null;
+      textarea?.focus();
+    }, 100);
+  }, []);
+
   const hasMessages = displayMessages.length > 0;
   const displayTitle = bootstrap?.chat.title ?? initialChatTitle;
   const isBootstrappingExistingChat =
-    Boolean(chatId) && bootstrap === undefined && initialMessages.length === 0;
+    Boolean(initialChatId) &&
+    bootstrap === undefined &&
+    initialMessages.length === 0;
 
   if (isBootstrappingExistingChat) {
     return (
@@ -609,11 +698,16 @@ export function ChatInterface({
           <Skeleton className="h-5 w-32" />
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 px-4 py-6">
-          <Skeleton className="h-16 w-2/3 rounded-2xl" />
-          <Skeleton className="ml-auto h-20 w-3/4 rounded-2xl" />
-          <Skeleton className="h-24 w-1/2 rounded-2xl" />
-          <div className="mt-auto py-3">
+        <div className="relative flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+            <Skeleton className="h-16 w-2/3 rounded-2xl" />
+            <Skeleton className="ml-auto h-20 w-3/4 rounded-2xl" />
+            <Skeleton className="h-24 w-1/2 rounded-2xl" />
+          </div>
+        </div>
+
+        <div className="px-4 py-3">
+          <div className="mx-auto max-w-2xl">
             <Skeleton className="h-28 w-full rounded-3xl" />
           </div>
         </div>
@@ -637,13 +731,21 @@ export function ChatInterface({
           <Messages
             messages={displayMessages}
             isLoading={isLoading}
+            searchStatus={searchStatus}
             hasMoreOlder={hasMoreOlder}
             isLoadingOlder={isLoadingOlder}
             onLoadOlder={handleLoadOlder}
             getAssistantBranchState={getAssistantBranchState}
+            onQuote={handleQuote}
           />
 
-          <div className="px-4 py-3">
+          <div
+            className={`fixed bottom-0 z-20 pb-6 sm:pb-2.5 w-full max-w-[95%] sm:max-w-2xl mx-auto ${
+              sidebarState === "expanded"
+                ? "left-0 right-0 md:left-[calc(var(--sidebar-width))] md:right-0"
+                : "left-0 right-0 md:left-[calc(var(--sidebar-width-icon))] md:right-0"
+            }`}
+          >
             <FormComponent
               input={input}
               setInput={setInput}
@@ -654,9 +756,19 @@ export function ChatInterface({
               onModelChange={setSelectedModel}
               searchMode={searchMode}
               onSearchModeChange={setSearchMode}
-              attachmentsEnabled={false}
+              files={pendingFiles}
+              onFilesChange={setPendingFiles}
             />
           </div>
+
+          {/* Gradient backdrop behind fixed input */}
+          <div
+            className={`fixed right-0 bottom-0 h-24 sm:h-20 z-10 bg-linear-to-t from-background via-background/95 to-background/80 backdrop-blur-sm pointer-events-none ${
+              sidebarState === "expanded"
+                ? "left-0 md:left-[calc(var(--sidebar-width))]"
+                : "left-0 md:left-[calc(var(--sidebar-width-icon))]"
+            }`}
+          />
         </>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center px-4">
@@ -690,25 +802,53 @@ export function ChatInterface({
             onModelChange={setSelectedModel}
             searchMode={searchMode}
             onSearchModeChange={setSearchMode}
-            attachmentsEnabled={false}
+            files={pendingFiles}
+            onFilesChange={setPendingFiles}
           />
 
           <div className="mt-4 flex max-w-2xl flex-wrap justify-center gap-2">
-            {[
-              "Rewrite this",
-              "Explain concept",
-              "Summarize text",
-              "Brainstorm ideas",
-            ].map((prompt) => (
-              <Button
-                key={prompt}
-                variant="outline"
-                size="sm"
-                className="rounded-full text-xs"
-                onClick={() => setInput(prompt)}
+            {(
+              [
+{
+                  label: "Summarize text",
+                  icon: "solar:document-text-linear",
+                  prompt: "Summarize the following: ",
+                },
+                {
+                  label: "Help me write",
+                  icon: "solar:pen-new-square-linear",
+                  prompt: "Help me write ",
+                },
+                {
+                  label: "Brainstorm ideas",
+                  icon: "solar:stars-linear",
+                  prompt: "Brainstorm ideas for ",
+                },
+                {
+                  label: "Analyze & explain",
+                  icon: "solar:lightbulb-linear",
+                  prompt: "Analyze and explain ",
+                },
+              ] as const
+            ).map((chip) => (
+              <button
+                key={chip.label}
+                type="button"
+                onClick={() => {
+                  if ("action" in chip && chip.action === "search") {
+                    setSearchMode("search");
+                  } else if ("prompt" in chip) {
+                    setInput(chip.prompt);
+                  }
+                }}
+                className="group inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3.5 py-2 text-xs font-medium text-muted-foreground transition-all duration-200 hover:border-border hover:bg-muted hover:text-foreground"
               >
-                {prompt}
-              </Button>
+                <Icon
+                  icon={chip.icon}
+                  className="size-3.5 transition-colors duration-200 group-hover:text-foreground"
+                />
+                {chip.label}
+              </button>
             ))}
           </div>
         </div>
