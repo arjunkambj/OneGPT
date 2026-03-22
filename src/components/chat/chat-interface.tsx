@@ -809,7 +809,7 @@ export function ChatInterface({
           <div className="mt-4 flex max-w-2xl flex-wrap justify-center gap-2">
             {(
               [
-{
+                {
                   label: "Summarize text",
                   icon: "solar:document-text-linear",
                   prompt: "Summarize the following: ",

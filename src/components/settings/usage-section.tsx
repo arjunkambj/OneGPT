@@ -31,9 +31,7 @@ export function UsageSection() {
             />
             <p className="text-sm font-medium">Searches Today</p>
           </div>
-          <p className="text-3xl font-semibold tracking-tight">
-            {searchCount}
-          </p>
+          <p className="text-3xl font-semibold tracking-tight">{searchCount}</p>
           <p className="text-xs text-muted-foreground mt-1">Daily usage</p>
         </div>
       </div>

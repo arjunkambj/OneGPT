@@ -59,6 +59,7 @@ import {
 import { useSubscription } from "@/hooks/use-subscription";
 import { chatHomePath, chatPath, newChatPath } from "@/lib/chat-routes";
 import { cn } from "@/lib/utils";
+import { ShareDialog } from "./share-dialog";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -70,6 +71,8 @@ interface ChatItem {
   title: string;
   createdAt: Date;
   isPinned: boolean;
+  visibility: "public" | "private";
+  shareToken?: string;
 }
 
 interface AppSidebarProps {
@@ -317,6 +320,7 @@ function ChatItemRow({
   onRename,
   onDelete,
   onTogglePin,
+  onShare,
 }: {
   chat: ChatItem;
   isActive: boolean;
@@ -325,6 +329,7 @@ function ChatItemRow({
   onRename: () => void;
   onDelete: () => void;
   onTogglePin: () => void;
+  onShare: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
@@ -382,6 +387,10 @@ function ChatItemRow({
               <Icon icon="solar:pen-linear" className="h-4 w-4" />
               Edit title
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={onShare}>
+              <Icon icon="solar:share-linear" className="h-4 w-4" />
+              Share
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Icon icon="solar:trash-bin-trash-linear" className="h-4 w-4" />
@@ -423,6 +432,8 @@ export const AppSidebar = memo(function AppSidebar({
     title: c.title,
     createdAt: new Date(c.createdAt),
     isPinned: c.isPinned,
+    visibility: c.visibility,
+    shareToken: c.shareToken,
   }));
   const isLoading = chatsData === undefined;
 
@@ -434,6 +445,9 @@ export const AppSidebar = memo(function AppSidebar({
   // ---- Delete state ----
   const [deleteTarget, setDeleteTarget] = useState<ChatItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // ---- Share state ----
+  const [shareTarget, setShareTarget] = useState<ChatItem | null>(null);
 
   // ---- Recent collapsed ----
   const [isRecentCollapsed, setIsRecentCollapsed] = useState(false);
@@ -560,6 +574,7 @@ export const AppSidebar = memo(function AppSidebar({
           onRename={() => openRenameDialog(chat)}
           onDelete={() => openDeleteDialog(chat)}
           onTogglePin={() => handleTogglePin(chat.id)}
+          onShare={() => setShareTarget(chat)}
         />
       );
     },
@@ -627,7 +642,9 @@ export const AppSidebar = memo(function AppSidebar({
               tooltip="New Chat"
               className={cn(
                 "text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98] group-data-[collapsible=icon]:justify-center",
-                (pathname === "/" || pathname === "/new") ? "bg-primary/10 hover:bg-primary/20" : "hover:bg-primary/8",
+                pathname === "/" || pathname === "/new"
+                  ? "bg-primary/10 hover:bg-primary/20"
+                  : "hover:bg-primary/8",
               )}
               onClick={handleNewChat}
             >
@@ -643,12 +660,18 @@ export const AppSidebar = memo(function AppSidebar({
             <SidebarMenuButton
               tooltip="Image Studio (Coming Soon)"
               className="!bg-transparent text-sidebar-foreground/70 hover:text-sidebar-foreground group-data-[collapsible=icon]:justify-center"
-              onClick={() => toast("Image Studio is coming soon!", { description: "We're working on it. Stay tuned!" })}
+              onClick={() =>
+                toast("Image Studio is coming soon!", {
+                  description: "We're working on it. Stay tuned!",
+                })
+              }
             >
               <Icon icon="solar:gallery-bold" className="size-4" />
               <span className="group-data-[collapsible=icon]:hidden flex items-center gap-2">
                 Image Studio
-                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full font-medium text-muted-foreground">Soon</span>
+                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded-full font-medium text-muted-foreground">
+                  Soon
+                </span>
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -992,6 +1015,19 @@ export const AppSidebar = memo(function AppSidebar({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Share dialog */}
+      {shareTarget && (
+        <ShareDialog
+          open={Boolean(shareTarget)}
+          onOpenChange={(open) => {
+            if (!open) setShareTarget(null);
+          }}
+          chatId={shareTarget.id}
+          initialVisibility={shareTarget.visibility}
+          initialShareToken={shareTarget.shareToken}
+        />
+      )}
     </Sidebar>
   );
 });

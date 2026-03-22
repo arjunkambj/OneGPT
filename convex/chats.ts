@@ -124,3 +124,64 @@ export const deleteChat = mutation({
     await ctx.db.delete(args.chatId);
   },
 });
+
+// ---------------------------------------------------------------------------
+// Share
+// ---------------------------------------------------------------------------
+
+export const updateChatVisibility = mutation({
+  args: {
+    chatId: v.id("chats"),
+    visibility: v.union(v.literal("public"), v.literal("private")),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireCurrentUser(ctx);
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat || chat.userId !== user._id) throw new Error("Chat not found");
+
+    const shareToken =
+      args.visibility === "public"
+        ? (chat.shareToken ?? crypto.randomUUID())
+        : undefined;
+
+    await ctx.db.patch(args.chatId, {
+      visibility: args.visibility,
+      shareToken,
+      updatedAt: Date.now(),
+    });
+
+    return { shareToken };
+  },
+});
+
+export const getSharedChat = query({
+  args: { shareToken: v.string() },
+  handler: async (ctx, args) => {
+    const chat = await ctx.db
+      .query("chats")
+      .withIndex("by_shareToken", (q) => q.eq("shareToken", args.shareToken))
+      .first();
+
+    if (!chat || chat.visibility !== "public") return null;
+
+    return {
+      _id: chat._id,
+      title: chat.title,
+      createdAt: chat.createdAt,
+    };
+  },
+});
+
+export const getSharedMessages = query({
+  args: { chatId: v.id("chats") },
+  handler: async (ctx, args) => {
+    const chat = await ctx.db.get(args.chatId);
+    if (!chat || chat.visibility !== "public") return null;
+
+    return await ctx.db
+      .query("messages")
+      .withIndex("by_chatId_and_createdAt", (q) => q.eq("chatId", args.chatId))
+      .order("asc")
+      .take(500);
+  },
+});
