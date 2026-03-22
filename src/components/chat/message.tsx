@@ -233,7 +233,10 @@ function ErrorDisplay({ error }: { error: string }) {
   );
 }
 
-function ResponseInfoButton({ message }: { message: ChatMessage }) {
+function ResponseInfoButton({
+  message,
+  className,
+}: { message: ChatMessage; className?: string }) {
   const hasMetadata =
     message.model ||
     message.inputTokens ||
@@ -259,13 +262,16 @@ function ResponseInfoButton({ message }: { message: ChatMessage }) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          className={cn(
+            "h-8 w-8 text-muted-foreground hover:text-foreground",
+            className,
+          )}
           aria-label="Response info"
         >
           <Icon icon="solar:info-circle-linear" className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" sideOffset={8} className="w-72">
+      <PopoverContent side="top" align="end" sideOffset={8} className="w-72">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Icon icon="solar:info-circle-linear" className="h-4 w-4" />
@@ -641,8 +647,8 @@ export const Message = React.memo(function Message({
           </div>
         </TextSelectionPopup>
 
-        <div className="mt-1.5 flex items-center gap-0.5">
-          <div className="flex items-center gap-0.5 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover/message:opacity-100">
+        <div className="mt-1 flex items-center">
+          <div className="flex items-center -ml-2 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover/message:opacity-100">
             {textContent ? <CopyMessageButton text={textContent} /> : null}
             {branchState?.siblingCount && branchState.siblingCount > 1 ? (
               <div className="flex items-center gap-0.5 rounded-full border border-border/60 bg-background/70 px-1 py-0.5">
@@ -679,13 +685,8 @@ export const Message = React.memo(function Message({
               onRetryWithModel={branchState?.onRetryWithModel}
               currentModel={message.model}
             />
-            <ResponseInfoButton message={message} />
           </div>
-          {message.model && (
-            <span className="ml-auto text-[11px] text-muted-foreground/50">
-              {getModelConfig(message.model)?.label ?? message.model}
-            </span>
-          )}
+          <ResponseInfoButton message={message} className="ml-auto" />
         </div>
       </div>
     );

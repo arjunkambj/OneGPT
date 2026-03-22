@@ -9,8 +9,37 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { FormComponent } from "@/components/chat/form-component";
 import Messages from "@/components/chat/messages";
+import { ShareDialog } from "@/components/chat/share-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocalStorage } from "@/hooks/use-local-storage";
@@ -22,6 +51,7 @@ import type {
   ChatMode,
   SearchStatusData,
 } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
@@ -271,6 +301,16 @@ export function ChatInterface({
   );
 
   const createChat = useMutation(api.chats.createChat);
+  const updateTitleMutation = useMutation(api.chats.updateChatTitle);
+  const deleteChatMutation = useMutation(api.chats.deleteChat);
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const headerGroupRef = useRef<HTMLDivElement>(null);
 
   const bootstrap = useQuery(
     api.chats.getChatBootstrap,
@@ -685,10 +725,55 @@ export function ChatInterface({
 
   const hasMessages = displayMessages.length > 0;
   const displayTitle = bootstrap?.chat.title ?? initialChatTitle;
+  const showHeaderDropdown =
+    Boolean(chatId) && displayTitle && displayTitle !== "New Chat";
   const isBootstrappingExistingChat =
     Boolean(initialChatId) &&
     bootstrap === undefined &&
     initialMessages.length === 0;
+
+  const handleStartEditTitle = () => {
+    if (!chatId) return;
+    setTitleInput(displayTitle || "");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveTitle = async () => {
+    if (!chatId) return;
+    const trimmed = titleInput.trim();
+    if (!trimmed) {
+      toast.error("Title cannot be empty");
+      return;
+    }
+    setIsSavingTitle(true);
+    try {
+      await updateTitleMutation({
+        chatId: chatId as Id<"chats">,
+        title: trimmed,
+      });
+      toast.success("Title updated");
+      setIsEditDialogOpen(false);
+    } catch {
+      toast.error("Failed to update title");
+    } finally {
+      setIsSavingTitle(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!chatId) return;
+    setIsDeleting(true);
+    try {
+      await deleteChatMutation({ chatId: chatId as Id<"chats"> });
+      toast.success("Chat deleted");
+      setIsDeleteOpen(false);
+      router.push(chatHomePath);
+    } catch {
+      toast.error("Failed to delete chat");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isBootstrappingExistingChat) {
     return (
@@ -719,10 +804,85 @@ export function ChatInterface({
     <div className="relative flex h-dvh flex-col">
       <div className="flex items-center gap-2 p-2">
         <SidebarTrigger className="text-muted-foreground" />
-        {displayTitle && displayTitle !== "New Chat" && (
-          <h2 className="truncate text-sm font-medium text-foreground">
-            {displayTitle}
-          </h2>
+        {showHeaderDropdown && (
+          <div className="flex items-center gap-2 min-w-0">
+            <DropdownMenu
+              open={headerMenuOpen}
+              onOpenChange={setHeaderMenuOpen}
+            >
+              <div ref={headerGroupRef} className="inline-flex">
+                <ButtonGroup className="group gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-2 w-auto max-w-[250px] justify-start rounded-md hover:bg-accent group-hover:bg-accent",
+                      headerMenuOpen && "bg-accent",
+                    )}
+                    onClick={handleStartEditTitle}
+                    disabled={isLoading}
+                  >
+                    <span className="text-sm font-medium truncate whitespace-nowrap text-left">
+                      {displayTitle}
+                    </span>
+                  </Button>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "h-8 w-8 rounded-md hover:bg-accent group-hover:bg-accent",
+                        headerMenuOpen && "bg-accent",
+                      )}
+                      disabled={isLoading}
+                    >
+                      <Icon
+                        icon="solar:alt-arrow-down-linear"
+                        className="size-4"
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </ButtonGroup>
+              </div>
+              <DropdownMenuContent
+                side="bottom"
+                align="start"
+                className="rounded-md border bg-popover shadow-lg p-1"
+              >
+                <DropdownMenuItem
+                  className="rounded-md"
+                  onClick={handleStartEditTitle}
+                  disabled={isLoading}
+                >
+                  <Icon
+                    icon="solar:pen-new-square-linear"
+                    className="size-4"
+                  />
+                  Edit title
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="rounded-md"
+                  onClick={() => setIsShareOpen(true)}
+                  disabled={isLoading}
+                >
+                  <Icon icon="solar:share-linear" className="size-4" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setIsDeleteOpen(true)}
+                  className="text-destructive! hover:text-destructive! rounded-md"
+                  disabled={isLoading}
+                >
+                  <Icon
+                    icon="solar:trash-bin-trash-linear"
+                    className="size-4 text-destructive"
+                  />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </div>
 
@@ -852,6 +1012,70 @@ export function ChatInterface({
             ))}
           </div>
         </div>
+      )}
+
+      {/* Edit Title Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit title</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={titleInput}
+            onChange={(e) => setTitleInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSaveTitle();
+            }}
+            maxLength={100}
+            autoFocus
+            placeholder="Chat title"
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTitle} disabled={isSavingTitle}>
+              {isSavingTitle ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              conversation and its content.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Share Dialog */}
+      {chatId && (
+        <ShareDialog
+          open={isShareOpen}
+          onOpenChange={setIsShareOpen}
+          chatId={chatId}
+          initialVisibility={bootstrap?.chat.visibility ?? "private"}
+          initialShareToken={bootstrap?.chat.shareToken}
+        />
       )}
     </div>
   );

@@ -572,10 +572,22 @@ export async function POST(req: Request) {
         try {
           const titleResult = await generateText({
             model: openrouter("minimax/minimax-m2.7"),
-            prompt: `Generate an exact five-word title for a chat that starts with: "${currentUserText.slice(0, 200)}". Return only the five words, with no quotes and no punctuation.`,
+            system: `You are an expert title generator. You are given a message and you need to generate a short title based on it.
+
+- you will generate a short 3-4 words title based on the first message a user begins a conversation with
+- the title should be creative and unique
+- do not write anything other than the title
+- do not use quotes or colons
+- no markdown formatting allowed
+- keep plain text only
+- not more than 4 words in the title
+- do not use any other text other than the title`,
+            messages: [
+              { role: "user", content: currentUserText.slice(0, 200) },
+            ],
           });
           const title = titleResult.text.trim().replace(/\s+/g, " ");
-          if (title.split(" ").length !== 5) return;
+          if (!title || title.split(" ").length > 8) return;
 
           await fetchMutation(
             api.chats.updateChatTitle,

@@ -2,7 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import { useMutation } from "convex/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,12 @@ export function ShareDialog({
   const [shareToken, setShareToken] = useState(initialShareToken);
   const [isChanging, setIsChanging] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Sync local state when props change (e.g., bootstrap loads or external update)
+  useEffect(() => {
+    setIsShared(initialVisibility === "public");
+    setShareToken(initialShareToken);
+  }, [initialVisibility, initialShareToken]);
 
   const updateVisibility = useMutation(api.chats.updateChatVisibility);
 
