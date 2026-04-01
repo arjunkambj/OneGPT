@@ -54,22 +54,3 @@ export type SearchStatusData = {
   queries?: string[];
   resultCount?: number;
 };
-
-export interface Chat {
-  id: string;
-  title: string;
-  createdAt: number;
-  updatedAt: number;
-  isPinned: boolean;
-  visibility: "public" | "private";
-  shareToken?: string;
-}
-
-export type SubscriptionTier = "free" | "pro" | "max";
-
-export type SubscriptionStatus =
-  | "active"
-  | "canceled"
-  | "past_due"
-  | "trialing"
-  | "paused";

@@ -59,10 +59,7 @@ const schema = defineSchema({
     imageUrl: v.optional(v.string()),
     updatedAt: v.number(),
     createdAt: v.number(),
-  })
-    .index("by_stackId", ["stackId"])
-    .index("by_email", ["email"])
-    .index("by_updatedAt", ["updatedAt"]),
+  }).index("by_stackId", ["stackId"]),
 
   // -------------------------------------------------------------------------
   // Chats
@@ -77,11 +74,6 @@ const schema = defineSchema({
     createdAt: v.number(),
   })
     .index("by_userId_and_updatedAt", ["userId", "updatedAt"])
-    .index("by_userId_and_isPinned_and_updatedAt", [
-      "userId",
-      "isPinned",
-      "updatedAt",
-    ])
     .index("by_shareToken", ["shareToken"]),
 
   // -------------------------------------------------------------------------
@@ -104,13 +96,7 @@ const schema = defineSchema({
     totalTokens: v.optional(v.number()),
     completionTime: v.optional(v.number()),
     createdAt: v.number(),
-  })
-    .index("by_chatId_and_createdAt", ["chatId", "createdAt"])
-    .index("by_chatId_and_parentMessageId_and_createdAt", [
-      "chatId",
-      "parentMessageId",
-      "createdAt",
-    ]),
+  }).index("by_chatId_and_createdAt", ["chatId", "createdAt"]),
 
   // -------------------------------------------------------------------------
   // Custom Instructions
@@ -143,9 +129,7 @@ const schema = defineSchema({
     searchCount: v.number(),
     tokensByProvider: v.optional(v.any()),
     resetAt: v.number(),
-  })
-    .index("by_userId_and_date", ["userId", "date"])
-    .index("by_userId", ["userId"]),
+  }).index("by_userId_and_date", ["userId", "date"]),
 
   // -------------------------------------------------------------------------
   // Subscriptions
@@ -174,10 +158,7 @@ const schema = defineSchema({
     metadata: v.optional(v.any()),
     updatedAt: v.number(),
     createdAt: v.number(),
-  })
-    .index("by_userId", ["userId"])
-    .index("by_externalId", ["externalId"])
-    .index("by_customerId", ["customerId"]),
+  }).index("by_userId", ["userId"]),
 });
 
 export default schema;

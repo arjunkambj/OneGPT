@@ -16,7 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSubscription } from "@/hooks/use-subscription";
 import { cn } from "@/lib/utils";
-import { PreferencesSection } from "./preferences-section";
+import { ChatPreferencesSection } from "./chat-preferences-section";
 import { SettingsHeader } from "./settings-header";
 import { SubscriptionSection } from "./subscription-section";
 import { tabs } from "./tabs-config";
@@ -167,7 +167,7 @@ export function SettingsContent() {
                     Customize your experience
                   </p>
                 </div>
-                <PreferencesSection />
+                <ChatPreferencesSection />
               </div>
             </TabsContent>
 

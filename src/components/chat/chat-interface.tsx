@@ -257,8 +257,8 @@ function toDisplayMessage(
   };
 }
 
-function getLeafMessageId(messages: UIMessage[] | ChatMessage[]) {
-  return messages.at(-1)?.id;
+function getStoredSyncKey(messages: UIMessage[] | ChatMessage[]) {
+  return messages.map((message) => message.id).join(",") || ROOT_BRANCH_KEY;
 }
 
 export function ChatInterface({
@@ -296,8 +296,8 @@ export function ChatInterface({
     null,
   );
   const [pendingFiles, setPendingFiles] = useState<FileUIPart[]>([]);
-  const lastAppliedStoredLeafIdRef = useRef<string | undefined>(
-    getLeafMessageId(initialMessages),
+  const lastAppliedStoredSyncKeyRef = useRef<string>(
+    getStoredSyncKey(initialMessages),
   );
 
   const createChat = useMutation(api.chats.createChat);
@@ -484,16 +484,13 @@ export function ChatInterface({
   }, [status]);
 
   useEffect(() => {
-    const storedLeafId = getLeafMessageId(visibleStoredUiMessages);
-    if (storedLeafId === lastAppliedStoredLeafIdRef.current) return;
-
-    if (status !== "ready") {
-      stop();
-    }
+    const storedSyncKey = getStoredSyncKey(visibleStoredUiMessages);
+    if (storedSyncKey === lastAppliedStoredSyncKeyRef.current) return;
+    if (isLoading) return;
 
     setMessages(visibleStoredUiMessages);
-    lastAppliedStoredLeafIdRef.current = storedLeafId;
-  }, [setMessages, stop, status, visibleStoredUiMessages]);
+    lastAppliedStoredSyncKeyRef.current = storedSyncKey;
+  }, [isLoading, setMessages, visibleStoredUiMessages]);
 
   useEffect(() => {
     if (!pendingSubmission || chatId !== pendingSubmission.chatId) return;

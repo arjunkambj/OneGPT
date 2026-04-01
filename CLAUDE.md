@@ -75,4 +75,3 @@ When working on Convex code, always read convex_rules.md first for important gui
 - **Convex queries**: Never use `.filter()` — use `.withIndex()` instead. Never use `.collect()` unbounded — use `.take(n)` or paginate. See `convex_rules.md` for full rules.
 - **Auth in Convex functions**: Never accept userId as an argument — always derive from `ctx.auth.getUserIdentity()`
 - **Biome**: 2-space indent, organizes imports automatically, React/Next.js recommended rules enabled
-- **Reference codebase**: Scira (`/home/honey/code/scira/`) — open-source AI chat app used as reference for chat navigation patterns, URL management, and loading states
