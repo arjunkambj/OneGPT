@@ -6,7 +6,6 @@ import { ThemeProvider } from "next-themes";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { stackServerApp } from "@/stack/server";
-import { Analytics } from "@vercel/analytics/next";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -104,7 +103,6 @@ export default function RootLayout({
             </StackTheme>
           </StackProvider>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   );

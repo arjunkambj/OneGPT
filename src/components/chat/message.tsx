@@ -401,6 +401,8 @@ function SourcesSection({
 }: {
   parts: Extract<MessagePart, { type: "source-url" }>[];
 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   if (parts.length === 0) return null;
 
   const uniqueSources = parts.reduce<
@@ -411,70 +413,72 @@ function SourcesSection({
   }, []);
 
   return (
-    <div className="mt-4 rounded-xl border border-border/60 bg-background/70 p-4">
-      <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
-        <Icon icon="solar:global-linear" className="h-3.5 w-3.5" />
-        Sources
-      </div>
+    <div className="my-1">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-1.5 py-1 text-muted-foreground/60 cursor-pointer transition-colors hover:text-muted-foreground"
+      >
+        <Icon
+          icon={
+            isExpanded
+              ? "solar:alt-arrow-up-linear"
+              : "solar:alt-arrow-down-linear"
+          }
+          className="h-3 w-3"
+        />
+        <Icon icon="solar:global-linear" className="h-3 w-3" />
+        <span className="text-xs">
+          {uniqueSources.length} {uniqueSources.length === 1 ? "Source" : "Sources"}
+        </span>
+      </button>
 
-      <div className="grid gap-2.5">
-        {uniqueSources.map((part, index) => {
-          const hostname = getHostname(part.url);
-          const displayTitle =
-            part.title?.trim() && part.title !== part.url
-              ? part.title
-              : hostname
-                  .split(".")
-                  .filter(Boolean)
-                  .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-                  .join(" · ");
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="flex flex-wrap gap-1.5 border-l-2 border-border/40 pl-3 ml-1 py-1">
+              {uniqueSources.map((part, index) => {
+                const hostname = getHostname(part.url);
+                const displayTitle =
+                  part.title?.trim() && part.title !== part.url
+                    ? part.title
+                    : hostname;
 
-          return (
-            <a
-              key={`${part.sourceId}-${part.url}`}
-              href={part.url}
-              target="_blank"
-              rel="noreferrer"
-              className="group block overflow-hidden rounded-xl border border-border/60 bg-card/30 p-3 transition-colors hover:bg-accent/40 hover:border-border"
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="flex h-6 min-w-6 items-center justify-center rounded-md bg-muted text-[11px] font-medium text-muted-foreground tabular-nums">
-                  {index + 1}
-                </div>
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/50 bg-background/80 overflow-hidden">
-                  <img
-                    src={getFavicon(hostname)}
-                    alt=""
-                    className="size-4 rounded shrink-0"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display =
-                        "none";
-                    }}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
-                        {displayTitle}
-                      </div>
-                      <div className="mt-1 flex items-center gap-1.5 min-w-0 text-[11px] text-muted-foreground">
-                        <span className="truncate">{hostname}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="mt-2 truncate text-[11px] text-muted-foreground/80"
-                    title={part.url}
+                return (
+                  <a
+                    key={`${part.sourceId}-${part.url}`}
+                    href={part.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={displayTitle}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-border/50 bg-card/30 px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-accent/40 hover:border-border hover:text-foreground"
                   >
-                    {part.url}
-                  </div>
-                </div>
-              </div>
-            </a>
-          );
-        })}
-      </div>
+                    <span className="flex h-4 min-w-4 items-center justify-center rounded bg-muted text-[10px] font-medium tabular-nums">
+                      {index + 1}
+                    </span>
+                    <img
+                      src={getFavicon(hostname)}
+                      alt=""
+                      className="size-3 rounded shrink-0"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display =
+                          "none";
+                      }}
+                    />
+                    <span className="max-w-[180px] truncate">{hostname}</span>
+                  </a>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
