@@ -4,11 +4,14 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
   generateText,
+  stepCountIs,
   streamText,
+  tool,
   type UIMessage,
 } from "ai";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { after } from "next/server";
+import { z } from "zod";
 import {
   getOpenRouterModelId,
   getOpenRouterProviderOptions,
@@ -302,6 +305,36 @@ function buildSourceParts(results: ExaSearchResult[]): SourcePart[] {
       publishedDate: result.publishedDate,
     },
   }));
+}
+
+function formatSearchResultsForLLM(results: ExaSearchResult[]) {
+  if (results.length === 0) return "No relevant search results found.";
+
+  const formatted = results
+    .map((result, index) => {
+      const snippets = (result.highlights ?? [])
+        .map((h) => `- ${h}`)
+        .join("\n");
+      const excerpt = result.text?.trim();
+      const meta = [
+        result.author ? `Author: ${result.author}` : null,
+        result.publishedDate ? `Published: ${result.publishedDate}` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      return [
+        `[${index + 1}] ${result.title ?? result.url}`,
+        `URL: ${result.url}`,
+        meta,
+        snippets || (excerpt ? excerpt.slice(0, 900) : ""),
+      ]
+        .filter(Boolean)
+        .join("\n");
+    })
+    .join("\n\n");
+
+  return `Search results:\n\n${formatted}\n\nUse these results to inform your answer. Cite sources where relevant.`;
 }
 
 function buildAssistantPartsFromMessage(message: UIMessage): StoredPart[] {
@@ -686,11 +719,60 @@ export async function POST(req: Request) {
           : null,
       });
 
+      const chatTools =
+        requestMode === "chat"
+          ? {
+              web_search: tool({
+                description:
+                  "Search the web for current information. Use when the user asks about recent events, news, real-time data, or facts you're unsure about.",
+                inputSchema: z.object({
+                  queries: z
+                    .array(z.string())
+                    .min(1)
+                    .max(3)
+                    .describe(
+                      "1-3 concise search queries to find relevant information",
+                    ),
+                }),
+                execute: async ({ queries }) => {
+                  writer.write({
+                    type: "data-search-status",
+                    data: { phase: "searching", queries },
+                  } as never);
+
+                  const results = await searchExa(queries);
+
+                  const sources = buildSourceParts(results);
+                  for (const source of sources) {
+                    writer.write({
+                      type: "source-url",
+                      sourceId: source.sourceId,
+                      url: source.url,
+                      title: source.title,
+                    });
+                  }
+
+                  writer.write({
+                    type: "data-search-status",
+                    data: {
+                      phase: "complete",
+                      resultCount: results.length,
+                    },
+                  } as never);
+
+                  return formatSearchResultsForLLM(results);
+                },
+              }),
+            }
+          : undefined;
+
       const result = streamText({
         model: openrouter(openRouterModelId),
         providerOptions: openRouterProviderOptions,
         system: systemPrompt,
         messages: modelMessages,
+        tools: chatTools,
+        stopWhen: stepCountIs(5),
         onFinish: ({ usage }) => {
           tokenUsage = {
             inputTokens: usage.inputTokens,
