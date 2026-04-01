@@ -382,7 +382,7 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-glm-5",
-    openrouterId: "deepinfra/fp4",
+    openrouterId: "z-ai/glm-5",
     label: "GLM 5",
     description: "Zhipu AI's most powerful LLM",
     vision: false,
@@ -512,7 +512,7 @@ export type SupportedModel = string;
 
 const SUPPORTED_MODEL_VALUE_SET = new Set(models.map((model) => model.value));
 
-export const DEFAULT_MODEL_VALUE = "onegpt-grok-4.20-experimental-beta-0304";
+export const DEFAULT_MODEL_VALUE = "onegpt-kimi-k2.5";
 export const TITLE_MODEL_VALUE = "onegpt-minimax-m2.7";
 export const DEFAULT_FAVORITE_MODELS: SupportedModel[] = [
   "onegpt-kimi-k2.5",
