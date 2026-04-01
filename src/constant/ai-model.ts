@@ -1,6 +1,11 @@
 // Types, interfaces, and helper functions for AI models
 // Models and providers data is defined below the type/interface declarations
 
+type JsonPrimitive = string | number | boolean | null;
+type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+type JsonObject = { [key: string]: JsonValue };
+type JsonArray = JsonValue[];
+
 export interface ModelParameters {
   temperature?: number;
   topP?: number;
@@ -13,28 +18,15 @@ export interface ModelParameters {
 
 // Provider definitions for model categorization
 export type ModelProvider =
-  | "onegpt"
   | "xai"
   | "openai"
   | "anthropic"
   | "google"
   | "alibaba"
-  | "mistral"
   | "deepseek"
   | "zhipu"
-  | "cohere"
   | "moonshot"
-  | "minimax"
-  | "bytedance"
-  | "arcee"
-  | "vercel"
-  | "amazon"
-  | "xiaomi"
-  | "kwaipilot"
-  | "stepfun"
-  | "sarvam"
-  | "inception"
-  | "nvidia";
+  | "minimax";
 
 export interface ProviderInfo {
   id: ModelProvider;
@@ -45,13 +37,13 @@ export interface ProviderInfo {
 
 export interface Model {
   value: string;
+  openrouterId: string;
   label: string;
   description: string;
   vision: boolean;
   reasoning: boolean;
   experimental: boolean;
   category: string;
-  pdf: boolean;
   pro: boolean;
   max?: boolean; // Requires Max plan (superset of Pro)
   requiresAuth: boolean;
@@ -61,11 +53,11 @@ export interface Model {
   fast?: boolean;
   isNew?: boolean;
   parameters?: ModelParameters;
+  openrouterProviderOptions?: OpenRouterProviderOptions;
   provider?: ModelProvider; // Optional - will be derived if not specified
 }
 
 export const PROVIDERS: Record<ModelProvider, ProviderInfo> = {
-  onegpt: { id: "onegpt", name: "OneGPT", icon: "onegpt" },
   xai: { id: "xai", name: "xAI", icon: "xai", hasNew: true },
   openai: { id: "openai", name: "OpenAI", icon: "openai", hasNew: true },
   anthropic: {
@@ -80,57 +72,19 @@ export const PROVIDERS: Record<ModelProvider, ProviderInfo> = {
   minimax: { id: "minimax", name: "Minimax", icon: "minimax", hasNew: true },
   deepseek: { id: "deepseek", name: "DeepSeek", icon: "deepseek" },
   moonshot: { id: "moonshot", name: "MoonShot", icon: "moonshot" },
-  cohere: { id: "cohere", name: "Cohere", icon: "cohere" },
-  bytedance: {
-    id: "bytedance",
-    name: "ByteDance",
-    icon: "bytedance",
-    hasNew: true,
-  },
-  mistral: { id: "mistral", name: "Mistral", icon: "mistral", hasNew: true },
-  arcee: { id: "arcee", name: "Arcee", icon: "arcee" },
-  vercel: { id: "vercel", name: "Vercel", icon: "vercel" },
-  amazon: { id: "amazon", name: "Amazon", icon: "amazon" },
-  xiaomi: { id: "xiaomi", name: "Xiaomi", icon: "xiaomi" },
-  kwaipilot: { id: "kwaipilot", name: "Kwaipilot", icon: "kwaipilot" },
-  stepfun: { id: "stepfun", name: "StepFun", icon: "stepfun" },
-  sarvam: { id: "sarvam", name: "Sarvam", icon: "sarvam", hasNew: true },
-  inception: {
-    id: "inception",
-    name: "Inception",
-    icon: "inception",
-    hasNew: true,
-  },
-  nvidia: { id: "nvidia", name: "NVIDIA", icon: "nvidia", hasNew: true },
 };
 
 export const models: Model[] = [
-  {
-    value: "onegpt-auto",
-    label: "Auto",
-    description: "Automatically routes your query to the best model",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "onegpt",
-  },
   // Models (xAI)
   {
     value: "onegpt-grok-4.20-multi-agent-beta",
+    openrouterId: "x-ai/grok-4.20-multi-agent-beta",
     label: "Grok 4.20 Multi Agent Beta",
     description: "xAI's experimental beta multi-agent model",
     vision: true,
     reasoning: true,
     experimental: true,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -139,29 +93,14 @@ export const models: Model[] = [
     provider: "xai",
   },
   {
-    value: "onegpt-grok-4",
-    label: "Grok 4",
-    description: "xAI's most intelligent LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    provider: "xai",
-  },
-  {
     value: "onegpt-grok-4.20-experimental-beta-0304",
+    openrouterId: "x-ai/grok-4.20-beta",
     label: "Grok 4.20 Beta",
     description: "xAI's experimental beta chat model",
     vision: true,
     reasoning: false,
     experimental: true,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -171,185 +110,31 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-grok-4.20-experimental-beta-0304-thinking",
+    openrouterId: "x-ai/grok-4.20-beta",
     label: "Grok 4.20 Beta Thinking",
     description: "xAI's experimental beta reasoning model",
     vision: true,
     reasoning: true,
     experimental: true,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
     maxOutputTokens: 30000,
     isNew: true,
     provider: "xai",
-  },
-  {
-    value: "onegpt-default",
-    label: "Grok 4.1 Fast",
-    description: "xAI's greatest and fastest multimodel LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: false,
-    freeUnlimited: false,
-    maxOutputTokens: 30000,
-    extreme: true,
-    fast: true,
-    isNew: true,
-    provider: "xai",
-  },
-  {
-    value: "onegpt-sarvam-105b",
-    label: "Sarvam 105B",
-    description: "Sarvam's flagship model for chat and reasoning",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "sarvam",
-    parameters: {
-      temperature: 0.5,
-    },
-  },
-  {
-    value: "onegpt-grok4.1-fast-thinking",
-    label: "Grok 4.1 Fast Thinking",
-    description: "xAI's greatest and fastest multimodel reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 30000,
-    extreme: true,
-    fast: true,
-    isNew: true,
-    provider: "xai",
-  },
-  {
-    value: "onegpt-code",
-    label: "Grok Code",
-    description: "xAI's advanced coding LLM",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    fast: true,
-    provider: "xai",
-  },
-  {
-    value: "onegpt-seed-2.0-mini",
-    label: "Seed 2.0 Mini",
-    description: "ByteDance's compact and efficient reasoning model",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    fast: true,
-    provider: "bytedance",
-  },
-  {
-    value: "onegpt-seed-2.0-lite",
-    label: "Seed 2.0 Lite",
-    description: "ByteDance's lightweight vision model",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    fast: true,
-    provider: "bytedance",
-  },
-  {
-    value: "onegpt-seed-1.6",
-    label: "Seed 1.6",
-    description: "ByteDance's recent reasoning model",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "bytedance",
-  },
-  {
-    value: "onegpt-seed-1.8",
-    label: "Seed 1.8",
-    description: "ByteDance's latest reasoning model",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "bytedance",
-  },
-  {
-    value: "onegpt-seed-1.6-flash",
-    label: "Seed 1.6 Flash",
-    description: "ByteDance's fast vision reasoning model",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    fast: true,
-    provider: "bytedance",
   },
   {
     value: "onegpt-qwen-32b",
+    openrouterId: "qwen/qwen3.5-27b",
     label: "Qwen 3 32B",
     description: "Alibaba's base LLM",
     vision: false,
     reasoning: false,
     experimental: false,
     category: "Free",
-    pdf: false,
     pro: false,
-    requiresAuth: false,
+    requiresAuth: true,
     freeUnlimited: false,
     maxOutputTokens: 40960,
     fast: true,
@@ -362,455 +147,14 @@ export const models: Model[] = [
     provider: "alibaba",
   },
   {
-    value: "onegpt-nemotron-3-super",
-    label: "Nemotron 3 Super",
-    description: "NVIDIA's powerful Nemotron 3 model",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: false,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    provider: "nvidia",
-  },
-  {
-    value: "onegpt-gpt-oss-20",
-    label: "GPT OSS 20B",
-    description: "OpenAI's small OSS LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    fast: true,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt5-nano",
-    label: "GPT 5 Nano",
-    description: "OpenAI's smallest flagship LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: true,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-google-lite",
-    label: "Gemini 2.5 Flash Lite",
-    description: "Google's advanced small LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 10000,
-    extreme: true,
-    isNew: false,
-    provider: "google",
-  },
-  {
-    value: "onegpt-ministral-3b",
-    label: "Ministral 3 3B",
-    description: "Mistral's mini-model 3B multi-modal LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-ministral-8b",
-    label: "Ministral 3 8B",
-    description: "Mistral's mini-model 8B multi-modal LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-devstral",
-    label: "Devstral 2",
-    description: "Mistral's coding-focused LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-devstral-small",
-    label: "Devstral Small 2",
-    description: "Mistral's small coding-focused LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-ministral-14b",
-    label: "Ministral 3 14B",
-    description: "Mistral's mini-model 14B multi-modal LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-mistral-large",
-    label: "Mistral Large 3",
-    description: "Mistral's latest and greatest large multi-modal LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-mistral-medium",
-    label: "Mistral Medium",
-    description: "Mistral's medium multi-modal LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-magistral-small",
-    label: "Magistral Small",
-    description: "Mistral's small reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-magistral-medium",
-    label: "Magistral Medium",
-    description: "Mistral's medium reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-mistral-small",
-    label: "Mistral Small 4",
-    description: "Mistral's small efficient model",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-mistral-small-think",
-    label: "Mistral Small 4 Thinking",
-    description: "Mistral's small model with reasoning mode enabled",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-leanstral",
-    label: "Leanstral",
-    description: "Mistral's lean and efficient small model",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "mistral",
-  },
-  {
-    value: "onegpt-trinity-mini",
-    label: "Trinity Mini",
-    description: "Arcee's small reasoning LLM",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    parameters: {
-      temperature: 0.15,
-      topK: 50,
-      topP: 0.75,
-      minP: 0.06,
-    },
-    provider: "arcee",
-  },
-  {
-    value: "onegpt-trinity-large",
-    label: "Trinity Large",
-    description: "Arcee's large reasoning LLM via OpenRouter",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: false,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    parameters: {
-      temperature: 0.15,
-      topK: 50,
-      topP: 0.75,
-      minP: 0.06,
-    },
-    provider: "arcee",
-  },
-  {
-    value: "onegpt-gpt-oss-120",
-    label: "GPT OSS 120B",
-    description: "OpenAI's advanced OSS LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    fast: true,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-4.1-nano",
-    label: "GPT 4.1 Nano",
-    description: "OpenAI's smallest LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: true,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-4.1-mini",
-    label: "GPT 4.1 Mini",
-    description: "OpenAI's small LLM",
-    vision: true,
-    reasoning: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    fast: true,
-    extreme: true,
-    experimental: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-4.1",
-    label: "GPT 4.1",
-    description: "OpenAI's LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.1",
-    label: "GPT 5.1 Instant",
-    description: "OpenAI's fast and smart LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.1-thinking",
-    label: "GPT 5.1 Thinking",
-    description: "OpenAI's recent and smart reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.2",
-    label: "GPT 5.2 Instant",
-    description: "OpenAI's latest and greatest LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.3-chat-latest",
-    label: "GPT 5.3 Instant",
-    description: "OpenAI's latest chat-optimized LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: true,
-    provider: "openai",
-  },
-  {
     value: "onegpt-gpt-5.4",
+    openrouterId: "openai/gpt-5.4",
     label: "GPT 5.4 Instant",
     description: "OpenAI's latest and greatest LLM",
     vision: true,
     reasoning: false,
     experimental: false,
     category: "Pro",
-    pdf: true,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -821,50 +165,14 @@ export const models: Model[] = [
     provider: "openai",
   },
   {
-    value: "onegpt-gpt-5.4-mini",
-    label: "GPT 5.4 Mini",
-    description: "OpenAI's small GPT 5.4 model",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: true,
-    isNew: true,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.4-nano",
-    label: "GPT 5.4 Nano",
-    description: "OpenAI's smallest GPT 5.4 model",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: true,
-    pro: false,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: true,
-    isNew: true,
-    provider: "openai",
-  },
-  {
     value: "onegpt-gpt-5.4-thinking",
+    openrouterId: "openai/gpt-5.4-pro",
     label: "GPT 5.4 Thinking",
     description: "OpenAI's latest and greatest reasoning LLM",
     vision: true,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: true,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -873,306 +181,16 @@ export const models: Model[] = [
     fast: false,
     isNew: true,
     provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.2-thinking",
-    label: "GPT 5.2 Thinking",
-    description: "OpenAI's latest and greatest reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.2-thinking-xhigh",
-    label: "GPT 5.2 Thinking XHigh",
-    description: "OpenAI's latest and greatest reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt5-mini",
-    label: "GPT 5 Mini",
-    description: "OpenAI's small flagship LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt5",
-    label: "GPT 5",
-    description: "OpenAI's flagship LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt5-medium",
-    label: "GPT 5 Medium",
-    description: "OpenAI's latest flagship reasoning LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.1-codex",
-    label: "GPT 5.1 Codex",
-    description: "OpenAI's advanced coding LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.1-codex-mini",
-    label: "GPT 5.1 Codex Mini",
-    description: "OpenAI's advanced coding LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.1-codex-max",
-    label: "GPT 5.1 Codex Max",
-    description: "OpenAI's advanced coding LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.2-codex",
-    label: "GPT 5.2 Codex",
-    description: "OpenAI's latest advanced coding LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt-5.3-codex",
-    label: "GPT 5.3 Codex",
-    description: "OpenAI's latest advanced coding LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: true,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-gpt5-codex",
-    label: "GPT 5 Codex",
-    description: "OpenAI's advanced coding LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    extreme: true,
-    fast: false,
-    isNew: false,
-    provider: "openai",
-  },
-  {
-    value: "onegpt-cmd-a",
-    label: "Command A",
-    description: "Cohere's advanced command LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "cohere",
-  },
-  {
-    value: "onegpt-cmd-a-think",
-    label: "Command A Thinking",
-    description: "Cohere's advanced command LLM with thinking",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "cohere",
-  },
-  {
-    value: "onegpt-kat-coder",
-    label: "KAT-Coder-Pro V1",
-    description: "Kwaipilot's advanced coding LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "kwaipilot",
-  },
-  {
-    value: "onegpt-deepseek-v3",
-    label: "DeepSeek v3",
-    description: "DeepSeek's previous advanced chat LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    parameters: {
-      temperature: 0.7,
-      topP: 0.8,
-      topK: 20,
-      minP: 0,
-    },
-    provider: "deepseek",
-  },
-  {
-    value: "onegpt-deepseek-v3.1-terminus",
-    label: "DeepSeek v3.1 Terminus",
-    description: "DeepSeek's advanced chat LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    parameters: {
-      temperature: 0.7,
-      topP: 0.8,
-      topK: 20,
-      minP: 0,
-    },
-    provider: "deepseek",
   },
   {
     value: "onegpt-deepseek-chat",
+    openrouterId: "deepseek/deepseek-chat",
     label: "DeepSeek v3.2",
     description: "DeepSeek's advanced chat LLM",
     vision: false,
     reasoning: false,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1186,13 +204,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-deepseek-chat-think",
+    openrouterId: "deepseek/deepseek-reasoner",
     label: "DeepSeek v3.2 Thinking",
     description: "DeepSeek's advanced chat LLM with thinking",
     vision: false,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1201,62 +219,14 @@ export const models: Model[] = [
     provider: "deepseek",
   },
   {
-    value: "onegpt-deepseek-chat-exp",
-    label: "DeepSeek v3.2 Exp",
-    description: "DeepSeek's advanced chat LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "deepseek",
-  },
-  {
-    value: "onegpt-deepseek-chat-think-exp",
-    label: "DeepSeek v3.2 Exp Thinking",
-    description: "DeepSeek's advanced chat LLM with thinking",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "deepseek",
-  },
-  {
     value: "onegpt-deepseek-r1",
+    openrouterId: "deepseek/deepseek-reasoner",
     label: "DeepSeek R1",
     description: "DeepSeek's advanced reasoning LLM",
     vision: false,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: false,
-    provider: "deepseek",
-  },
-  {
-    value: "onegpt-deepseek-r1-0528",
-    label: "DeepSeek R1 0528",
-    description: "DeepSeek's advanced reasoning LLM",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1266,13 +236,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-qwen-3.5-plus",
+    openrouterId: "qwen/qwen3.5-plus-02-15",
     label: "Qwen 3.5 Plus",
     description: "Alibaba's latest flagship LLM with vision and reasoning",
     vision: true,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1283,13 +253,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-qwen-3.5-flash",
+    openrouterId: "qwen/qwen3.5-flash-02-23",
     label: "Qwen 3.5 Flash",
     description: "Alibaba's fast vision reasoning LLM",
     vision: true,
     reasoning: false,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1307,31 +277,39 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-kimi-k2.5",
+    openrouterId: "moonshotai/kimi-k2.5",
     label: "Kimi K2.5",
     description: "MoonShot AI's latest vision-enabled LLM",
     vision: true,
     reasoning: true,
     experimental: false,
     category: "Free",
-    pdf: false,
     pro: false,
-    requiresAuth: false,
+    requiresAuth: true,
     freeUnlimited: false,
     maxOutputTokens: 10000,
     isNew: true,
     provider: "moonshot",
+    openrouterProviderOptions: {
+      openrouter: {
+        provider: {
+          order: ["inceptron/int4"],
+          allow_fallbacks: false,
+        },
+      },
+    },
   },
   {
     value: "onegpt-minimax-m2.7",
+    openrouterId: "minimax/minimax-m2.7",
     label: "MiniMax M2.7",
     description: "MiniMax's latest high-speed reasoning LLM",
     vision: false,
     reasoning: true,
     experimental: false,
     category: "Free",
-    pdf: false,
     pro: false,
-    requiresAuth: false,
+    requiresAuth: true,
     freeUnlimited: false,
     maxOutputTokens: 10000,
     fast: true,
@@ -1345,13 +323,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-minimax-m2.5",
+    openrouterId: "minimax/minimax-m2.5",
     label: "Minimax M2.5",
     description: "Minimax's most capable reasoning LLM",
     vision: false,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1366,13 +344,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-glm-4.7",
+    openrouterId: "zhipu/glm-4-plus",
     label: "GLM 4.7",
     description: "Zhipu AI's latest advanced reasoning LLM",
     vision: false,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1387,13 +365,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-glm-4.7-flash",
+    openrouterId: "zhipu/glm-4-flash",
     label: "GLM 4.7 Flash",
     description: "Zhipu AI's latest fast vision reasoning LLM",
     vision: true,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: false,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1404,15 +382,15 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-glm-5",
+    openrouterId: "deepinfra/fp4",
     label: "GLM 5",
     description: "Zhipu AI's most powerful LLM",
     vision: false,
     reasoning: false,
     experimental: false,
     category: "Free",
-    pdf: false,
     pro: false,
-    requiresAuth: false,
+    requiresAuth: true,
     freeUnlimited: false,
     maxOutputTokens: 20000,
     isNew: true,
@@ -1423,82 +401,14 @@ export const models: Model[] = [
     provider: "zhipu",
   },
   {
-    value: "onegpt-google",
-    label: "Gemini 2.5 Flash",
-    description: "Google's advanced small LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    extreme: true,
-    maxOutputTokens: 10000,
-    isNew: false,
-    provider: "google",
-  },
-  {
-    value: "onegpt-google-think",
-    label: "Gemini 2.5 Flash Thinking",
-    description: "Google's advanced small LLM with thinking",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    extreme: true,
-    maxOutputTokens: 10000,
-    isNew: false,
-    provider: "google",
-  },
-  {
-    value: "onegpt-google-pro",
-    label: "Gemini 2.5 Pro",
-    description: "Google's advanced LLM",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    extreme: true,
-    maxOutputTokens: 10000,
-    isNew: false,
-    provider: "google",
-  },
-  {
-    value: "onegpt-google-pro-think",
-    label: "Gemini 2.5 Pro Thinking",
-    description: "Google's advanced LLM with thinking",
-    vision: true,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: true,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    extreme: true,
-    maxOutputTokens: 10000,
-    isNew: false,
-    provider: "google",
-  },
-  {
     value: "onegpt-gemini-3-flash",
+    openrouterId: "google/gemini-3-flash-preview",
     label: "Gemini 3 Flash",
     description: "Google's latest small SOTA LLM",
     vision: true,
     reasoning: false,
     experimental: false,
     category: "Pro",
-    pdf: true,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1509,13 +419,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-gemini-3-flash-think",
+    openrouterId: "google/gemini-3-flash-preview",
     label: "Gemini 3 Flash Thinking",
     description: "Google's latest small SOTA LLM with thinking",
     vision: true,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: true,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1526,15 +436,15 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-gemini-3.1-flash-lite",
+    openrouterId: "google/gemini-3.1-flash-lite-preview",
     label: "Gemini 3.1 Flash Lite",
     description: "Google's newest lightweight flash LLM",
     vision: true,
     reasoning: false,
     experimental: false,
     category: "Free",
-    pdf: true,
     pro: false,
-    requiresAuth: false,
+    requiresAuth: true,
     freeUnlimited: false,
     extreme: true,
     maxOutputTokens: 10000,
@@ -1544,13 +454,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-gemini-3.1-flash-lite-think",
+    openrouterId: "google/gemini-3.1-flash-lite-preview",
     label: "Gemini 3.1 Flash Lite Thinking",
     description: "Google's newest lightweight flash LLM with thinking",
     vision: true,
     reasoning: true,
     experimental: false,
     category: "Pro",
-    pdf: true,
     pro: true,
     requiresAuth: true,
     freeUnlimited: false,
@@ -1561,32 +471,14 @@ export const models: Model[] = [
     provider: "google",
   },
   {
-    value: "onegpt-gemini-3.1-pro",
-    label: "Gemini 3.1 Pro",
-    description: "Google's newest SOTA LLM",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Max",
-    pdf: true,
-    pro: true,
-    max: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    extreme: true,
-    maxOutputTokens: 10000,
-    isNew: true,
-    provider: "google",
-  },
-  {
     value: "onegpt-anthropic-sonnet-4.6",
+    openrouterId: "anthropic/claude-sonnet-4.6",
     label: "Claude Sonnet 4.6",
     description: "Anthropic's latest Sonnet LLM",
     vision: true,
     reasoning: false,
     experimental: false,
     category: "Max",
-    pdf: true,
     pro: true,
     max: true,
     requiresAuth: true,
@@ -1597,13 +489,13 @@ export const models: Model[] = [
   },
   {
     value: "onegpt-anthropic-opus-4.6",
+    openrouterId: "anthropic/claude-opus-4.6",
     label: "Claude 4.6 Opus",
     description: "Anthropic's most advanced LLM",
     vision: true,
     reasoning: false,
     experimental: false,
     category: "Max",
-    pdf: true,
     pro: true,
     max: true,
     requiresAuth: true,
@@ -1612,122 +504,59 @@ export const models: Model[] = [
     isNew: true,
     provider: "anthropic",
   },
-  {
-    value: "onegpt-mimo-v2-flash",
-    label: "Mimo V2 Flash",
-    description:
-      "Xiaomi's fast Mimo V2 Flash model via OpenRouter (thinking disabled)",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "xiaomi",
-  },
-  {
-    value: "onegpt-mimo-v2-pro",
-    label: "Mimo V2 Pro",
-    description: "Xiaomi's advanced Mimo V2 Pro model",
-    vision: false,
-    reasoning: true,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "xiaomi",
-  },
-  {
-    value: "onegpt-nova-2-lite",
-    label: "Nova 2 Lite",
-    description: "Amazon's latest and smallest LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "amazon",
-  },
-  {
-    value: "onegpt-v0-10",
-    label: "Vercel v0 1.0",
-    description: "Vercel's v0 1.0 model",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "vercel",
-  },
-  {
-    value: "onegpt-v0-15",
-    label: "Vercel v0 1.5",
-    description: "Vercel's v0 1.5 model",
-    vision: true,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 16000,
-    isNew: true,
-    provider: "vercel",
-  },
-  {
-    value: "onegpt-step-3.5-flash",
-    label: "Step 3.5 Flash",
-    description: "StepFun's fast and efficient LLM",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Free",
-    pdf: false,
-    pro: false,
-    requiresAuth: false,
-    freeUnlimited: false,
-    maxOutputTokens: 8000,
-    fast: true,
-    isNew: true,
-    provider: "stepfun",
-  },
-  {
-    value: "onegpt-mercury-2",
-    label: "Mercury 2",
-    description: "Inception's diffusion-based language model",
-    vision: false,
-    reasoning: false,
-    experimental: false,
-    category: "Pro",
-    pdf: false,
-    pro: true,
-    requiresAuth: true,
-    freeUnlimited: false,
-    maxOutputTokens: 1000,
-    fast: true,
-    isNew: true,
-    provider: "inception",
-  },
 ];
+
+export type OpenRouterProviderOptions = Record<string, JsonObject>;
+
+export type SupportedModel = string;
+
+const SUPPORTED_MODEL_VALUE_SET = new Set(models.map((model) => model.value));
+
+export const DEFAULT_MODEL_VALUE = "onegpt-grok-4.20-experimental-beta-0304";
+export const TITLE_MODEL_VALUE = "onegpt-minimax-m2.7";
+export const DEFAULT_FAVORITE_MODELS: SupportedModel[] = [
+  "onegpt-kimi-k2.5",
+  "onegpt-gpt-5.4",
+  "onegpt-glm-5",
+  "onegpt-minimax-m2.7",
+];
+export const SUPPORTED_MODEL_VALUES = models.map(
+  (model) => model.value,
+) as SupportedModel[];
+
+export function isSupportedModel(
+  modelValue: string,
+): modelValue is SupportedModel {
+  return SUPPORTED_MODEL_VALUE_SET.has(modelValue);
+}
+
+export function getSupportedModelValues() {
+  return SUPPORTED_MODEL_VALUES;
+}
+
+export function getDefaultModelValue() {
+  return DEFAULT_MODEL_VALUE;
+}
+
+export function getTitleModelValue() {
+  return TITLE_MODEL_VALUE;
+}
+
+export function getOpenRouterModelId(modelValue: string) {
+  return (
+    getModelConfig(modelValue)?.openrouterId ||
+    getModelConfig(DEFAULT_MODEL_VALUE)?.openrouterId ||
+    "x-ai/grok-4.20-beta"
+  );
+}
+
+export function mapModelToOpenRouter(modelValue: string) {
+  return getOpenRouterModelId(modelValue);
+}
+
+export function getOpenRouterProviderOptions(modelValue: string) {
+  return getModelConfig(modelValue)?.openrouterProviderOptions;
+}
 
 // ---------------------------------------------------------------------------
 // Helper functions for model access checks
@@ -1737,9 +566,8 @@ export function getModelConfig(modelValue: string): Model | undefined {
   return models.find((model) => model.value === modelValue);
 }
 
-export function requiresAuthentication(modelValue: string): boolean {
-  const model = getModelConfig(modelValue);
-  return model?.requiresAuth || false;
+export function requiresAuthentication(_modelValue: string): boolean {
+  return true;
 }
 
 export function requiresProSubscription(modelValue: string): boolean {
@@ -1760,11 +588,6 @@ export function isFreeUnlimited(modelValue: string): boolean {
 export function hasVisionSupport(modelValue: string): boolean {
   const model = getModelConfig(modelValue);
   return model?.vision || false;
-}
-
-export function hasPdfSupport(modelValue: string): boolean {
-  const model = getModelConfig(modelValue);
-  return model?.pdf || false;
 }
 
 export function hasReasoningSupport(modelValue: string): boolean {
@@ -1790,7 +613,7 @@ export function getModelParameters(modelValue: string): ModelParameters {
 // Access control helper
 export function canUseModel(
   modelValue: string,
-  user: any,
+  user: unknown,
   isProUser: boolean,
   isMaxUser: boolean = false,
 ): { canUse: boolean; reason?: string } {
@@ -1800,8 +623,8 @@ export function canUseModel(
     return { canUse: false, reason: "Model not found" };
   }
 
-  // Check if model requires authentication
-  if (model.requiresAuth && !user) {
+  // All models require authentication.
+  if (!user) {
     return { canUse: false, reason: "authentication_required" };
   }
 
@@ -1827,23 +650,17 @@ export function shouldBypassRateLimits(modelValue: string): boolean {
 // Get acceptable file types for a model
 export function getAcceptedFileTypes(modelValue: string): string {
   const model = getModelConfig(modelValue);
-  // Document file types for file_query_search tool - available for ALL models
-  const documentTypes = ".csv,.xlsx,.xls,.docx";
 
-  // Vision models get images + documents, PDF models also get PDFs
+  // Only image attachments are supported.
   if (model?.vision) {
-    if (model?.pdf) {
-      return `image/*,.pdf,${documentTypes}`;
-    }
-    return `image/*,${documentTypes}`;
+    return "image/*";
   }
 
-  // Non-vision models only get document types for file_query_search
-  return documentTypes;
+  return "";
 }
 
 // Check if a model supports extreme mode
-export function supportsExtremeMode(modelValue: string): boolean {
+export function supportsExtremeMode(_modelValue: string): boolean {
   // Extreme mode restrictions removed: allow all models in extreme mode
   return true;
 }
@@ -1867,30 +684,7 @@ export function supportsCanvasMode(_modelValue: string): boolean {
 const RESTRICTED_REGIONS = ["CN", "KP", "RU"]; // China, North Korea, Russia
 
 // Models that should be filtered in restricted regions
-const OPENAI_MODELS = [
-  "onegpt-gpt-4.1",
-  "onegpt-gpt-4.1-mini",
-  "onegpt-gpt-4.1-nano",
-  "onegpt-gpt5",
-  "onegpt-gpt5-mini",
-  "onegpt-gpt5-nano",
-  "onegpt-gpt5-medium",
-  "onegpt-gpt5-codex",
-  "onegpt-gpt-5.1",
-  "onegpt-gpt-5.1-codex",
-  "onegpt-gpt-5.1-codex-mini",
-  "onegpt-gpt-5.1-codex-max",
-  "onegpt-gpt-5.1-thinking",
-  "onegpt-gpt-5.2",
-  "onegpt-gpt-5.4",
-  "onegpt-gpt-5.4-mini",
-  "onegpt-gpt-5.4-nano",
-  "onegpt-gpt-5.4-thinking",
-  "onegpt-gpt-5.2-thinking",
-  "onegpt-gpt-5.2-thinking-xhigh",
-  "onegpt-gpt-5.2-codex",
-  "onegpt-gpt-5.3-codex",
-];
+const OPENAI_MODELS = ["onegpt-gpt-5.4", "onegpt-gpt-5.4-thinking"];
 
 const ANTHROPIC_MODELS = [
   "onegpt-anthropic-sonnet-4.6",
@@ -1925,9 +719,7 @@ export function getFilteredModels(countryCode?: string): Model[] {
 }
 
 // Legacy arrays for backward compatibility (deprecated - use helper functions instead)
-export const authRequiredModels = models
-  .filter((m) => m.requiresAuth)
-  .map((m) => m.value);
+export const authRequiredModels = models.map((m) => m.value);
 export const proRequiredModels = models
   .filter((m) => m.pro)
   .map((m) => m.value);
@@ -1938,131 +730,38 @@ export const freeUnlimitedModels = models
 // Helper function to derive provider from model value/label patterns
 export function getModelProvider(
   modelValue: string,
-  label?: string,
+  _label?: string,
 ): ModelProvider {
-  const value = modelValue.toLowerCase();
-  const modelLabel = (label || "").toLowerCase();
+  const model = getModelConfig(modelValue);
+  if (model?.provider) return model.provider;
 
-  // xAI (Grok)
-  if (
-    value.includes("grok") ||
-    value.includes("onegpt-default") ||
-    (value.includes("onegpt-code") && !value.includes("codex"))
-  ) {
-    return "xai";
+  const openrouterId = model?.openrouterId;
+  if (!openrouterId) return "openai";
+
+  const providerPrefix = openrouterId.split("/")[0];
+  switch (providerPrefix) {
+    case "x-ai":
+      return "xai";
+    case "openai":
+      return "openai";
+    case "google":
+      return "google";
+    case "anthropic":
+      return "anthropic";
+    case "qwen":
+      return "alibaba";
+    case "deepseek":
+      return "deepseek";
+    case "moonshotai":
+      return "moonshot";
+    case "minimax":
+      return "minimax";
+    case "zhipu":
+    case "deepinfra":
+      return "zhipu";
+    default:
+      return "openai";
   }
-
-  // OpenAI (GPT, o3, o4)
-  if (
-    value.includes("gpt") ||
-    value.includes("onegpt-o3") ||
-    value.includes("onegpt-o4")
-  ) {
-    return "openai";
-  }
-
-  // Anthropic (Claude)
-  if (
-    value.includes("anthropic") ||
-    value.includes("haiku") ||
-    modelLabel.includes("claude")
-  ) {
-    return "anthropic";
-  }
-
-  // Google (Gemini)
-  if (value.includes("google") || value.includes("gemini")) {
-    return "google";
-  }
-
-  // Alibaba (Qwen)
-  if (value.includes("qwen")) {
-    return "alibaba";
-  }
-
-  // Mistral (Mistral, Ministral, Magistral, Devstral, Leanstral)
-  if (
-    value.includes("mistral") ||
-    value.includes("ministral") ||
-    value.includes("magistral") ||
-    value.includes("devstral") ||
-    value.includes("leanstral")
-  ) {
-    return "mistral";
-  }
-
-  // DeepSeek
-  if (value.includes("deepseek")) {
-    return "deepseek";
-  }
-
-  // Zhipu (GLM)
-  if (value.includes("glm")) {
-    return "zhipu";
-  }
-
-  // Cohere (Command)
-  if (value.includes("cmd") || modelLabel.includes("command")) {
-    return "cohere";
-  }
-
-  // MoonShot (Kimi)
-  if (value.includes("kimi")) {
-    return "moonshot";
-  }
-
-  // Minimax
-  if (value.includes("minimax")) {
-    return "minimax";
-  }
-
-  // ByteDance (Seed)
-  if (value.includes("seed")) {
-    return "bytedance";
-  }
-
-  // Arcee (Trinity)
-  if (value.includes("trinity")) {
-    return "arcee";
-  }
-
-  // Vercel (v0)
-  if (value.includes("v0")) {
-    return "vercel";
-  }
-
-  // Amazon (Nova)
-  if (value.includes("nova")) {
-    return "amazon";
-  }
-
-  // Xiaomi (Mimo)
-  if (value.includes("mimo")) {
-    return "xiaomi";
-  }
-
-  // Kwaipilot (KAT)
-  if (value.includes("kat")) {
-    return "kwaipilot";
-  }
-
-  // StepFun (Step)
-  if (value.includes("step")) {
-    return "stepfun";
-  }
-
-  // Sarvam
-  if (value.includes("sarvam")) {
-    return "sarvam";
-  }
-
-  // Inception (Mercury)
-  if (value.includes("mercury")) {
-    return "inception";
-  }
-
-  // Default fallback
-  return "openai";
 }
 
 // Get provider info for a model

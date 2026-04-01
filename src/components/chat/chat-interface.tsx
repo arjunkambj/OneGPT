@@ -1,10 +1,10 @@
 "use client";
 
 import { type UIMessage, useChat } from "@ai-sdk/react";
+import { Icon } from "@iconify/react";
 import { DefaultChatTransport, type FileUIPart } from "ai";
 import { useConvex, useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
-import { Icon } from "@iconify/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type React from "react";
@@ -42,8 +42,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getDefaultModelValue, isSupportedModel } from "@/constant/ai-model";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { isSupportedModel } from "@/lib/ai/model-routing";
 import { chatHomePath, chatPath } from "@/lib/chat-routes";
 import type {
   Attachment,
@@ -272,9 +272,9 @@ export function ChatInterface({
   const convex = useConvex();
   const { state: sidebarState } = useSidebar();
   const [chatId, setChatId] = useState<string | undefined>(initialChatId);
-  const [selectedModel, setSelectedModel] = useLocalStorage(
+  const [selectedModel, setSelectedModel] = useLocalStorage<string>(
     "selected-model",
-    "onegpt-default",
+    getDefaultModelValue(),
   );
   const [input, setInput] = useState("");
   const [searchMode, setSearchMode] = useState<ChatMode>("chat");
@@ -432,7 +432,7 @@ export function ChatInterface({
 
   useEffect(() => {
     if (isSupportedModel(selectedModel)) return;
-    setSelectedModel("onegpt-default");
+    setSelectedModel(getDefaultModelValue());
   }, [selectedModel, setSelectedModel]);
 
   useEffect(() => {
@@ -854,10 +854,7 @@ export function ChatInterface({
                   onClick={handleStartEditTitle}
                   disabled={isLoading}
                 >
-                  <Icon
-                    icon="solar:pen-new-square-linear"
-                    className="size-4"
-                  />
+                  <Icon icon="solar:pen-new-square-linear" className="size-4" />
                   Edit title
                 </DropdownMenuItem>
                 <DropdownMenuItem

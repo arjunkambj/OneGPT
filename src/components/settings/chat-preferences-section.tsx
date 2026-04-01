@@ -16,10 +16,15 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { getModelProvider, models, PROVIDERS } from "@/constant/ai-model";
+import {
+  getDefaultModelValue,
+  getFilteredModels,
+  getModelProvider,
+  isSupportedModel,
+  PROVIDERS,
+} from "@/constant/ai-model";
 import { useCustomInstructions } from "@/hooks/use-custom-instructions";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
-import { isSupportedModel } from "@/lib/ai/model-routing";
 
 export function ChatPreferencesSection() {
   const { defaultModel, saveDefaultModel } = useUserPreferences();
@@ -43,7 +48,7 @@ export function ChatPreferencesSection() {
   }, [isEnabled]);
 
   const supportedModels = useMemo(
-    () => models.filter((model) => isSupportedModel(model.value)),
+    () => getFilteredModels().filter((model) => isSupportedModel(model.value)),
     [],
   );
 
@@ -63,10 +68,16 @@ export function ChatPreferencesSection() {
     [supportedModels],
   );
 
+  const fallbackModel =
+    supportedModels.find((model) => model.value === getDefaultModelValue())
+      ?.value ??
+    supportedModels[0]?.value ??
+    getDefaultModelValue();
+
   const selectedModel =
     defaultModel && isSupportedModel(defaultModel)
       ? defaultModel
-      : (supportedModels[0]?.value ?? "onegpt-default");
+      : fallbackModel;
 
   const handleSave = async () => {
     if (!content.trim()) {

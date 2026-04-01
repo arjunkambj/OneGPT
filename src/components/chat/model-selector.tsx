@@ -2,9 +2,8 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { Brain, Eye, FilePdf, Lock as LockIcon } from "@phosphor-icons/react";
+import { Brain, Eye } from "@phosphor-icons/react";
 import type React from "react";
-import type { SVGProps } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,34 +27,16 @@ import {
 import {
   getFilteredModels,
   getModelProvider,
+  isSupportedModel,
   type ModelProvider,
   type models,
   PROVIDERS,
-  requiresAuthentication,
   requiresMaxSubscription,
   requiresProSubscription,
 } from "@/constant/ai-model";
 import { useFavoriteModels } from "@/hooks/use-favorite-models";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  isSupportedModel,
-  SUPPORTED_MODEL_VALUES,
-} from "@/lib/ai/model-routing";
 import { cn } from "@/lib/utils";
-
-// ─── NVIDIA standalone SVG ────────────────────────────────────────────────────
-const NVIDIA = (props: SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlSpace="preserve" viewBox="35.188 31.512 351.46 258.785">
-    <path
-      fill="currentColor"
-      d="M384.195 282.109c0 3.771-2.769 6.302-6.047 6.302v-.023c-3.371.023-6.089-2.508-6.089-6.278 0-3.769 2.718-6.293 6.089-6.293 3.279-.001 6.047 2.523 6.047 6.292zm2.453 0c0-5.175-4.02-8.179-8.5-8.179-4.511 0-8.531 3.004-8.531 8.179 0 5.172 4.021 8.188 8.531 8.188 4.481 0 8.5-3.016 8.5-8.188m-9.91.692h.91l2.109 3.703h2.316l-2.336-3.859c1.207-.086 2.2-.661 2.2-2.286 0-2.019-1.392-2.668-3.75-2.668h-3.411v8.813h1.961v-3.703m.001-1.492v-2.122h1.364c.742 0 1.753.06 1.753.965 0 .985-.523 1.157-1.398 1.157h-1.719M329.406 237.027l10.598 28.993H318.48l10.926-28.993zm-11.35-11.289-24.423 61.88h17.246l3.863-10.934h28.903l3.656 10.934h18.722l-24.605-61.888-23.362.008zm-49.033 61.903h17.497v-61.922l-17.5-.004.003 61.926zm-121.467-61.926-14.598 49.078-13.984-49.074-18.879-.004 19.972 61.926h25.207l20.133-61.926h-17.851zm70.725 13.484h7.52c10.91 0 17.966 4.898 17.966 17.609 0 12.714-7.056 17.613-17.966 17.613h-7.52v-35.222zm-17.35-13.484v61.926h28.366c15.113 0 20.048-2.512 25.384-8.148 3.769-3.957 6.207-12.641 6.207-22.134 0-8.707-2.063-16.468-5.66-21.304-6.481-8.649-15.817-10.34-29.75-10.34h-24.547zm-165.743-.086v62.012h17.645v-47.086l13.672.004c4.527 0 7.754 1.128 9.934 3.457 2.765 2.945 3.894 7.699 3.894 16.395v27.23h17.098v-34.262c0-24.453-15.586-27.75-30.836-27.75H35.188zm137.583.086.007 61.926h17.489v-61.926h-17.496z"
-    />
-    <path
-      fill="currentColor"
-      d="M82.211 102.414s22.504-33.203 67.437-36.638V53.73c-49.769 3.997-92.867 46.149-92.867 46.149s24.41 70.565 92.867 77.026v-12.804c-50.237-6.32-67.437-61.687-67.437-61.687zm67.437 36.223v11.726c-37.968-6.769-48.507-46.237-48.507-46.237s18.23-20.195 48.507-23.47v12.867c-.023 0-.039-.007-.058-.007-15.891-1.907-28.305 12.938-28.305 12.938s6.958 24.991 28.363 32.183m0-107.125V53.73c1.461-.112 2.922-.207 4.391-.257 56.582-1.907 93.449 46.406 93.449 46.406s-42.343 51.488-86.457 51.488c-4.043 0-7.828-.375-11.383-1.005v13.739c3.04.386 6.192.613 9.481.613 41.051 0 70.738-20.965 99.484-45.778 4.766 3.817 24.278 13.103 28.289 17.168-27.332 22.883-91.031 41.329-127.144 41.329-3.481 0-6.824-.211-10.11-.528v19.306H305.68V31.512H149.648zm0 49.144V65.777c1.446-.101 2.903-.179 4.391-.226 40.688-1.278 67.382 34.965 67.382 34.965s-28.832 40.043-59.746 40.043c-4.449 0-8.438-.715-12.028-1.922V93.523c15.84 1.914 19.028 8.911 28.551 24.786l21.18-17.859s-15.461-20.277-41.524-20.277c-2.833-.001-5.544.198-8.206.483"
-    />
-  </svg>
-);
 
 // ─── Provider Icon Component ──────────────────────────────────────────────────
 const ProviderIcon = ({
@@ -74,22 +55,6 @@ const ProviderIcon = ({
   };
 
   switch (provider) {
-    case "onegpt":
-      return <Icon icon="solar:widget-2-linear" {...iconProps} />;
-    case "sarvam":
-      return (
-        <svg {...iconProps} viewBox="0 0 24 24" fill="currentColor">
-          <circle
-            cx="12"
-            cy="12"
-            r="9"
-            strokeWidth="2"
-            stroke="currentColor"
-            fill="none"
-          />
-          <circle cx="12" cy="12" r="4" fill="currentColor" />
-        </svg>
-      );
     case "xai":
       return (
         <svg
@@ -138,79 +103,6 @@ const ProviderIcon = ({
           <path d="M12.604 1.34c.393.69.784 1.382 1.174 2.075a.18.18 0 00.157.091h5.552c.174 0 .322.11.446.327l1.454 2.57c.19.337.24.478.024.837-.26.43-.513.864-.76 1.3l-.367.658c-.106.196-.223.28-.04.512l2.652 4.637c.172.301.111.494-.043.77-.437.785-.882 1.564-1.335 2.34-.159.272-.352.375-.68.37-.777-.016-1.552-.01-2.327.016a.099.099 0 00-.081.05 575.097 575.097 0 01-2.705 4.74c-.169.293-.38.363-.725.364-.997.003-2.002.004-3.017.002a.537.537 0 01-.465-.271l-1.335-2.323a.09.09 0 00-.083-.049H4.982c-.285.03-.553-.001-.805-.092l-1.603-2.77a.543.543 0 01-.002-.54l1.207-2.12a.198.198 0 000-.197 550.951 550.951 0 01-1.875-3.272l-.79-1.395c-.16-.31-.173-.496.095-.965.465-.813.927-1.625 1.387-2.436.132-.234.304-.334.584-.335a338.3 338.3 0 012.589-.001.124.124 0 00.107-.063l2.806-4.895a.488.488 0 01.422-.246c.524-.001 1.053 0 1.583-.006L11.704 1c.341-.003.724.032.9.34zm-3.432.403a.06.06 0 00-.052.03L6.254 6.788a.157.157 0 01-.135.078H3.253c-.056 0-.07.025-.041.074l5.81 10.156c.025.042.013.062-.034.063l-2.795.015a.218.218 0 00-.2.116l-1.32 2.31c-.044.078-.021.118.068.118l5.716.008c.046 0 .08.02.104.061l1.403 2.454c.046.081.092.082.139 0l5.006-8.76.783-1.382a.055.055 0 01.096 0l1.424 2.53a.122.122 0 00.107.062l2.763-.02a.04.04 0 00.035-.02.041.041 0 000-.04l-2.9-5.086a.108.108 0 010-.113l.293-.507 1.12-1.977c.024-.041.012-.062-.035-.062H9.2c-.059 0-.073-.026-.043-.077l1.434-2.505a.107.107 0 000-.114L9.225 1.774a.06.06 0 00-.053-.031zm6.29 8.02c.046 0 .058.02.034.06l-.832 1.465-2.613 4.585a.056.056 0 01-.05.029.058.058 0 01-.05-.029L8.498 9.841c-.02-.034-.01-.052.028-.054l.216-.012 6.722-.012z" />
         </svg>
       );
-    case "mistral":
-      return (
-        <svg
-          {...iconProps}
-          preserveAspectRatio="xMidYMid"
-          viewBox="0 0 256 233"
-        >
-          <path
-            fill="currentColor"
-            d="M186.18182 0h46.54545v46.54545h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M209.45454 0h46.54545v46.54545h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M0 0h46.54545v46.54545H0zM0 46.54545h46.54545V93.0909H0zM0 93.09091h46.54545v46.54545H0zM0 139.63636h46.54545v46.54545H0zM0 186.18182h46.54545v46.54545H0z"
-          />
-          <path
-            fill="currentColor"
-            d="M23.27273 0h46.54545v46.54545H23.27273z"
-          />
-          <path
-            fill="currentColor"
-            d="M209.45454 46.54545h46.54545V93.0909h-46.54545zM23.27273 46.54545h46.54545V93.0909H23.27273z"
-          />
-          <path
-            fill="currentColor"
-            d="M139.63636 46.54545h46.54545V93.0909h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M162.90909 46.54545h46.54545V93.0909h-46.54545zM69.81818 46.54545h46.54545V93.0909H69.81818z"
-          />
-          <path
-            fill="currentColor"
-            d="M116.36364 93.09091h46.54545v46.54545h-46.54545zM162.90909 93.09091h46.54545v46.54545h-46.54545zM69.81818 93.09091h46.54545v46.54545H69.81818z"
-          />
-          <path
-            fill="currentColor"
-            d="M93.09091 139.63636h46.54545v46.54545H93.09091z"
-          />
-          <path
-            fill="currentColor"
-            d="M116.36364 139.63636h46.54545v46.54545h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M209.45454 93.09091h46.54545v46.54545h-46.54545zM23.27273 93.09091h46.54545v46.54545H23.27273z"
-          />
-          <path
-            fill="currentColor"
-            d="M186.18182 139.63636h46.54545v46.54545h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M209.45454 139.63636h46.54545v46.54545h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M186.18182 186.18182h46.54545v46.54545h-46.54545z"
-          />
-          <path
-            fill="currentColor"
-            d="M23.27273 139.63636h46.54545v46.54545H23.27273z"
-          />
-          <path
-            fill="currentColor"
-            d="M209.45454 186.18182h46.54545v46.54545h-46.54545zM23.27273 186.18182h46.54545v46.54545H23.27273z"
-          />
-        </svg>
-      );
     case "deepseek":
       return (
         <svg {...iconProps} viewBox="0 0 24 24">
@@ -231,27 +123,6 @@ const ProviderIcon = ({
           <path d="M12.105 2L9.927 4.953H.653L2.83 2h9.276zM23.254 19.048L21.078 22h-9.242l2.174-2.952h9.244zM24 2L9.264 22H0L14.736 2H24z" />
         </svg>
       );
-    case "cohere":
-      return (
-        <svg {...iconProps} viewBox="0 0 75 75">
-          <path
-            fill="currentColor"
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M24.3 44.7c2 0 6-.1 11.6-2.4 6.5-2.7 19.3-7.5 28.6-12.5 6.5-3.5 9.3-8.1 9.3-14.3C73.8 7 66.9 0 58.3 0h-36C10 0 0 10 0 22.3s9.4 22.4 24.3 22.4z"
-          />
-          <path
-            fill="currentColor"
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M30.4 60c0-6 3.6-11.5 9.2-13.8l11.3-4.7C62.4 36.8 75 45.2 75 57.6 75 67.2 67.2 75 57.6 75H45.3c-8.2 0-14.9-6.7-14.9-15z"
-          />
-          <path
-            fill="currentColor"
-            d="M12.9 47.6C5.8 47.6 0 53.4 0 60.5v1.7C0 69.2 5.8 75 12.9 75c7.1 0 12.9-5.8 12.9-12.9v-1.7c-.1-7-5.8-12.8-12.9-12.8z"
-          />
-        </svg>
-      );
     case "moonshot":
       return (
         <svg
@@ -269,87 +140,6 @@ const ProviderIcon = ({
           <path d="M11.43 3.92a.86.86 0 1 0-1.718 0v14.236a1.999 1.999 0 0 1-3.997 0V9.022a.86.86 0 1 0-1.718 0v3.87a1.999 1.999 0 0 1-3.997 0V11.49a.57.57 0 0 1 1.139 0v1.404a.86.86 0 0 0 1.719 0V9.022a1.999 1.999 0 0 1 3.997 0v9.134a.86.86 0 0 0 1.719 0V3.92a1.998 1.998 0 1 1 3.996 0v11.788a.57.57 0 1 1-1.139 0zm10.572 3.105a2 2 0 0 0-1.999 1.997v7.63a.86.86 0 0 1-1.718 0V3.923a1.999 1.999 0 0 0-3.997 0v16.16a.86.86 0 0 1-1.719 0V18.08a.57.57 0 1 0-1.138 0v2a1.998 1.998 0 0 0 3.996 0V3.92a.86.86 0 0 1 1.719 0v12.73a1.999 1.999 0 0 0 3.996 0V9.023a.86.86 0 1 1 1.72 0v6.686a.57.57 0 0 0 1.138 0V9.022a2 2 0 0 0-1.998-1.997" />
         </svg>
       );
-    case "bytedance":
-      return (
-        <svg {...iconProps} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19.8772 1.4685 24 2.5326v18.9426l-4.1228 1.0563V1.4685zm-13.3481 9.428 4.115 1.0641v8.9786l-4.115 1.0642v-11.107zM0 2.572l4.115 1.0642v16.7354L0 21.428V2.572zm17.4553 5.6205v11.107l-4.1228-1.0642V9.2568l4.1228-1.0642z" />
-        </svg>
-      );
-    case "arcee":
-      return (
-        <svg {...iconProps} viewBox="0 0 82 72" fill="none">
-          <path
-            d="M41 1L81 71H1L41 1ZM41 1L41 48.1579M1.09847 71L41 48.1579M41 48.1579L80.9015 71"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeMiterlimit="10"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    case "vercel":
-      return (
-        <svg {...iconProps} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M24 22.525H0l12-21.05 12 21.05z" />
-        </svg>
-      );
-    case "amazon":
-      return (
-        <svg {...iconProps} viewBox="0 0 32 32" fillRule="evenodd">
-          <path
-            fill="currentColor"
-            d="M28.312 28.26C25.003 30.7 20.208 32 16.08 32c-5.8 0-11.002-2.14-14.945-5.703-.3-.28-.032-.662.34-.444C5.73 28.33 11 29.82 16.426 29.82a29.73 29.73 0 0 0 11.406-2.332c.56-.238 1.03.367.48.773m1.376-1.575c-.42-.54-2.796-.255-3.86-.13-.325.04-.374-.243-.082-.446 1.9-1.33 4.994-.947 5.356-.5s-.094 3.56-1.87 5.044c-.273.228-.533.107-.4-.196.4-.996 1.294-3.23.87-3.772"
-          />
-          <path
-            fill="currentColor"
-            d="M18.43 13.864c0 1.692.043 3.103-.812 4.605-.7 1.22-1.8 1.973-3.005 1.973-1.667 0-2.644-1.27-2.644-3.145 0-3.7 3.316-4.373 6.462-4.373v.94m4.38 10.584c-.287.257-.702.275-1.026.104-1.44-1.197-1.704-1.753-2.492-2.895-2.382 2.43-4.074 3.157-7.158 3.157-3.658 0-6.498-2.254-6.498-6.767 0-3.524 1.905-5.924 4.63-7.097 2.357-1.038 5.65-1.22 8.165-1.5V8.9c0-1.032.08-2.254-.53-3.145-.525-.8-1.54-1.13-2.437-1.13-1.655 0-3.127.85-3.487 2.608-.073.4-.36.776-.757.794L7 7.555c-.354-.08-.75-.366-.647-.9C7.328 1.54 11.945 0 16.074 0c2.113 0 4.874.562 6.54 2.162 2.113 1.973 1.912 4.605 1.912 7.47V16.4c0 2.034.843 2.925 1.637 4.025.275.4.336.86-.018 1.154a184.26 184.26 0 0 0-3.328 2.883l-.006-.012"
-          />
-        </svg>
-      );
-    case "xiaomi":
-      return (
-        <svg {...iconProps} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19.96 20a.32.32 0 0 1-.32-.32V4.32a.32.32 0 0 1 .32-.32h3.71a.32.32 0 0 1 .33.32v15.36a.32.32 0 0 1-.33.32zm-6.22 0s-.3-.09-.3-.32v-9.43A2.18 2.18 0 0 0 11.24 8H4.3c-.4 0-.3.3-.3.3v11.38c0 .27-.3.32-.3.32H.33a.32.32 0 0 1-.33-.32V4.32A.32.32 0 0 1 .33 4h12.86a4.28 4.28 0 0 1 4.25 4.27l.01 11.41a.32.32 0 0 1-.32.32zm-6.9 0a.3.3 0 0 1-.3-.3v-9a.3.3 0 0 1 .3-.3h3.77a.3.3 0 0 1 .29.3v9a.3.3 0 0 1-.3.3z" />
-        </svg>
-      );
-    case "kwaipilot":
-      return (
-        <svg
-          {...iconProps}
-          fill="currentColor"
-          fillRule="evenodd"
-          viewBox="0 0 24 24"
-        >
-          <path
-            clipRule="evenodd"
-            d="M11.765.03C5.327.03.108 5.25.108 11.686c0 3.514 1.556 6.665 4.015 8.804L9.89 8.665h6.451L9.31 23.083c.807.173 1.63.26 2.455.26 6.438 0 11.657-5.22 11.657-11.658S18.202.028 11.765.028V.03z"
-          />
-        </svg>
-      );
-    case "stepfun":
-      return (
-        <svg
-          {...iconProps}
-          fill="currentColor"
-          fillRule="evenodd"
-          viewBox="0 0 24 24"
-        >
-          <path d="M22.012 0h1.032v.927H24v.968h-.956V3.78h-1.032V1.896h-1.878v-.97h1.878V0zM2.6 12.371V1.87h.969v10.502h-.97zm10.423.66h10.95v.918h-6.208v9.579h-4.742V13.03zM5.629 3.333v12.356H0v4.51h10.386V8L20.859 8l-.003-4.668-15.227.001z" />
-        </svg>
-      );
-    case "inception":
-      return (
-        <svg
-          {...iconProps}
-          fill="currentColor"
-          fillRule="evenodd"
-          viewBox="0 0 24 24"
-        >
-          <path d="M14.767 1H7.884L1 7.883v6.884h6.884V7.883h6.883V1zM9.234 23h6.882L23 16.116V9.233h-6.884v6.883H9.234V23z" />
-        </svg>
-      );
-    case "nvidia":
-      return <NVIDIA {...iconProps} />;
     default:
       return (
         <svg {...iconProps} viewBox="0 0 24 24" fill="currentColor">
@@ -362,12 +152,11 @@ const ProviderIcon = ({
 // ─── Sort helper (matches onegpt) ──────────────────────────────────────────────
 function sortModelsForList(
   modelsToShow: Array<(typeof models)[0]>,
-  options: { user?: unknown; isProUser: boolean; isMaxUser: boolean },
+  options: { isProUser: boolean; isMaxUser: boolean },
 ) {
   if (modelsToShow.length === 0) return modelsToShow;
 
-  const shouldSortFreeFirst =
-    !options.user || !options.isProUser || !options.isMaxUser;
+  const shouldSortFreeFirst = !options.isProUser || !options.isMaxUser;
 
   const newModels: Array<(typeof models)[0]> = [];
   const freeModels: Array<(typeof models)[0]> = [];
@@ -381,14 +170,13 @@ function sortModelsForList(
     }
 
     if (shouldSortFreeFirst) {
-      const needsAuth = requiresAuthentication(model.value) && !options.user;
       const needsPro =
         requiresProSubscription(model.value) &&
         !options.isProUser &&
         !options.isMaxUser;
       const needsMax =
         requiresMaxSubscription(model.value) && !options.isMaxUser;
-      const isLocked = needsAuth || needsPro || needsMax;
+      const isLocked = needsPro || needsMax;
       if (isLocked) lockedModels.push(model);
       else freeModels.push(model);
       continue;
@@ -406,7 +194,6 @@ function sortModelsForList(
 interface ModelSelectorProps {
   selectedModel: string;
   onModelChange: (model: string) => void;
-  user?: unknown;
   isProUser?: boolean;
   isMaxUser?: boolean;
   excludeModels?: string[];
@@ -416,84 +203,10 @@ interface ModelSelectorProps {
   onClose?: () => void;
 }
 
-// ─── Provider & generation filter ─────────────────────────────────────────────
-const ALLOWED_PROVIDERS = new Set<ModelProvider>([
-  "openai",
-  "anthropic",
-  "google",
-  "mistral",
-  "minimax",
-  "xai",
-  "zhipu",
-  "deepseek",
-  "moonshot",
-  "alibaba",
-]);
-
-/** Old-generation models to hide (latest 2 generations kept per provider). */
-const EXCLUDED_MODELS = new Set([
-  // OpenAI – keep GPT 5.4 + o-series only
-  "onegpt-gpt-oss-20",
-  "onegpt-gpt-oss-120",
-  "onegpt-gpt5-nano",
-  "onegpt-gpt-4.1-nano",
-  "onegpt-gpt-4.1-mini",
-  "onegpt-gpt-4.1",
-  "onegpt-gpt-5.1",
-  "onegpt-gpt-5.1-thinking",
-  "onegpt-gpt-5.2",
-  "onegpt-gpt-5.2-thinking",
-  "onegpt-gpt-5.2-thinking-xhigh",
-  "onegpt-gpt-5.3-chat-latest",
-  "onegpt-gpt5-mini",
-  "onegpt-gpt5",
-  "onegpt-gpt5-medium",
-  "onegpt-gpt5-codex",
-  "onegpt-gpt-5.1-codex",
-  "onegpt-gpt-5.1-codex-mini",
-  "onegpt-gpt-5.1-codex-max",
-  "onegpt-gpt-5.2-codex",
-  "onegpt-gpt-5.3-codex",
-  // Google – keep Gemini 3.1 + 3 only
-  "onegpt-google-lite",
-  "onegpt-google",
-  "onegpt-google-think",
-  "onegpt-google-pro",
-  "onegpt-google-pro-think",
-  // xAI – keep Grok 4.20 + 4.1 only
-  "onegpt-grok-3-mini",
-  "onegpt-grok-3",
-  "onegpt-grok-4",
-  "onegpt-grok-4-fast",
-  "onegpt-grok-4-fast-think",
-  "onegpt-code",
-  // Zhipu – keep GLM 5 + 4.7 only
-  "onegpt-glm-4.6",
-  "onegpt-glm-4.6v-flash",
-  "onegpt-glm-4.6v",
-  "onegpt-glm-air",
-  "onegpt-glm",
-  // DeepSeek – keep v3.2 + R1 only
-  "onegpt-deepseek-v3",
-  "onegpt-deepseek-v3.1-terminus",
-  // Mistral – keep Large 3 + Magistral Medium only
-  "onegpt-ministral-3b",
-  "onegpt-ministral-8b",
-  "onegpt-ministral-14b",
-  "onegpt-devstral",
-  "onegpt-devstral-small",
-  "onegpt-mistral-medium",
-  "onegpt-magistral-small",
-  "onegpt-mistral-small",
-  "onegpt-mistral-small-think",
-  "onegpt-leanstral",
-]);
-const SUPPORTED_MODELS = new Set(SUPPORTED_MODEL_VALUES);
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function ModelSelector({
   selectedModel,
   onModelChange,
-  user,
   isProUser = false,
   isMaxUser = false,
   excludeModels = [],
@@ -541,21 +254,15 @@ export function ModelSelector({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [setOpen]);
 
-  // Get filtered models – only allowed providers, latest 2 generations
+  // Get filtered models from centralized model config
   const availableModels = useMemo(() => {
     const filtered = getFilteredModels();
     return filtered.filter((model) => {
-      if (
-        !SUPPORTED_MODELS.has(model.value) ||
-        !isSupportedModel(model.value)
-      ) {
+      if (!isSupportedModel(model.value)) {
         return false;
       }
       if (excludeModels.includes(model.value)) return false;
-      if (EXCLUDED_MODELS.has(model.value)) return false;
-      const provider =
-        model.provider || getModelProvider(model.value, model.label);
-      return ALLOWED_PROVIDERS.has(provider);
+      return true;
     });
   }, [excludeModels]);
 
@@ -573,16 +280,11 @@ export function ModelSelector({
         model.provider || getModelProvider(model.value, model.label);
       providerSet.add(provider);
     }
-    // Preferred display order – OpenAI, Anthropic, Google first
-    const preferredOrder: ModelProvider[] = [
-      "openai",
-      "anthropic",
-      "google",
-      "mistral",
-      "minimax",
-    ];
+
+    // Follow the canonical provider order defined in PROVIDERS.
+    const providerOrder = Object.keys(PROVIDERS) as ModelProvider[];
     const ordered: ModelProvider[] = [];
-    for (const p of preferredOrder) {
+    for (const p of providerOrder) {
       if (providerSet.has(p)) {
         ordered.push(p);
         providerSet.delete(p);
@@ -628,8 +330,8 @@ export function ModelSelector({
   }, [availableModels, selectedProvider, favorites]);
 
   const sortedModelsForList = useMemo(
-    () => sortModelsForList(filteredByProvider, { user, isProUser, isMaxUser }),
-    [filteredByProvider, user, isProUser, isMaxUser],
+    () => sortModelsForList(filteredByProvider, { isProUser, isMaxUser }),
+    [filteredByProvider, isProUser, isMaxUser],
   );
 
   // Search functionality
@@ -756,11 +458,10 @@ export function ModelSelector({
           e.preventDefault();
           if (focusedIndex >= 0 && focusedIndex < count) {
             const model = displayModels[focusedIndex];
-            const needsAuth = requiresAuthentication(model.value) && !user;
             const needsPro =
               requiresProSubscription(model.value) && !isProUser && !isMaxUser;
             const needsMax = requiresMaxSubscription(model.value) && !isMaxUser;
-            if (needsAuth || needsPro || needsMax) return;
+            if (needsPro || needsMax) return;
             onModelChange(model.value);
             setOpen(false);
           }
@@ -781,7 +482,6 @@ export function ModelSelector({
     [
       displayModels,
       focusedIndex,
-      user,
       isProUser,
       isMaxUser,
       onModelChange,
@@ -793,15 +493,13 @@ export function ModelSelector({
 
   // ─── Model card renderer (matches onegpt) ────────────────────────────────
   const renderModelCard = (model: (typeof models)[0], index: number) => {
-    const reqAuth = requiresAuthentication(model.value) && !user;
     const reqPro =
       requiresProSubscription(model.value) && !isProUser && !isMaxUser;
     const reqMax = requiresMaxSubscription(model.value) && !isMaxUser;
-    const isLocked = reqAuth || reqPro || reqMax;
+    const isLocked = reqPro || reqMax;
     const modelProvider =
       model.provider || getModelProvider(model.value, model.label);
     const isSelected = selectedModel === model.value;
-    const isAutoRouter = model.value === "onegpt-auto";
     const isFocused = focusedIndex === index;
 
     const handleClick = () => {
@@ -845,18 +543,11 @@ export function ModelSelector({
               : "bg-secondary/60 text-foreground/70 group-hover:bg-secondary/80",
           )}
         >
-          {isAutoRouter ? (
-            <Icon
-              icon="solar:magic-stick-3-linear"
-              className={cn(isMobile ? "size-4" : "size-3.5")}
-            />
-          ) : (
-            <ProviderIcon
-              provider={modelProvider}
-              size={isMobile ? 16 : 14}
-              className="text-inherit!"
-            />
-          )}
+          <ProviderIcon
+            provider={modelProvider}
+            size={isMobile ? 16 : 14}
+            className="text-inherit!"
+          />
         </div>
 
         {/* Model Info */}
@@ -880,14 +571,6 @@ export function ModelSelector({
             {reqPro && !reqMax && !isProUser && (
               <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-primary/10 text-primary leading-none">
                 PRO
-              </span>
-            )}
-            {reqAuth && !user && (
-              <LockIcon className="size-3 text-muted-foreground/60" />
-            )}
-            {isAutoRouter && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-primary/10 text-primary leading-none">
-                AUTO
               </span>
             )}
             {model.isNew && (
@@ -959,23 +642,6 @@ export function ModelSelector({
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-xs">
                   Reasoning
-                </TooltipContent>
-              </Tooltip>
-            )}
-            {model.pdf && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={cn("p-0.5 rounded", isMobile && "p-1")}>
-                    <FilePdf
-                      className={cn(
-                        "text-muted-foreground/50",
-                        isMobile ? "size-3" : "size-2.5",
-                      )}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  PDF Support
                 </TooltipContent>
               </Tooltip>
             )}

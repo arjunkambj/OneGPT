@@ -9,12 +9,13 @@ import {
 } from "ai";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { after } from "next/server";
-import { buildSystemPrompt } from "@/lib/ai/build-system-prompt";
 import {
+  getOpenRouterModelId,
   getOpenRouterProviderOptions,
+  getTitleModelValue,
   isSupportedModel,
-  mapModelToOpenRouter,
-} from "@/lib/ai/model-routing";
+} from "@/constant/ai-model";
+import { buildSystemPrompt } from "@/lib/ai/build-system-prompt";
 import type { ChatMode } from "@/lib/types";
 import { stackServerApp } from "@/stack/server";
 import { api } from "../../../../convex/_generated/api";
@@ -25,6 +26,7 @@ export const maxDuration = 60;
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
 });
+const OPENROUTER_TITLE_MODEL = getOpenRouterModelId(getTitleModelValue());
 
 type StoredPart =
   | { type: "text"; text: string }
@@ -401,7 +403,7 @@ export async function POST(req: Request) {
   }
 
   const branchMessages = storedMessages as StoredMessage[];
-  const openRouterModelId = mapModelToOpenRouter(model);
+  const openRouterModelId = getOpenRouterModelId(model);
   const openRouterProviderOptions = getOpenRouterProviderOptions(model);
   const isRegenerate = trigger === "regenerate-message";
   const latestUserMessage = [...messages].reverse().find((candidate) => {
@@ -571,7 +573,7 @@ export async function POST(req: Request) {
       after(async () => {
         try {
           const titleResult = await generateText({
-            model: openrouter("minimax/minimax-m2.7"),
+            model: openrouter(OPENROUTER_TITLE_MODEL),
             system: `You are an expert title generator. You are given a message and you need to generate a short title based on it.
 
 - you will generate a short 3-4 words title based on the first message a user begins a conversation with

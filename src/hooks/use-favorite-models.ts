@@ -1,14 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { DEFAULT_FAVORITE_MODELS, isSupportedModel } from "@/constant/ai-model";
 
 const STORAGE_KEY = "onegpt-favorite-models";
-const DEFAULT_FAVORITES = [
-  "onegpt-kimi-k2.5",
-  "onegpt-gpt-5.4",
-  "onegpt-glm-5",
-  "onegpt-minimax-m2.7",
-];
+const DEFAULT_FAVORITES = [...DEFAULT_FAVORITE_MODELS];
 
 function readFavorites(): string[] {
   if (typeof window === "undefined") return DEFAULT_FAVORITES;
@@ -16,7 +12,12 @@ function readFavorites(): string[] {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return DEFAULT_FAVORITES;
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : DEFAULT_FAVORITES;
+    if (!Array.isArray(parsed)) return DEFAULT_FAVORITES;
+    const sanitized = parsed.filter(
+      (modelValue): modelValue is string =>
+        typeof modelValue === "string" && isSupportedModel(modelValue),
+    );
+    return sanitized.length > 0 ? sanitized : DEFAULT_FAVORITES;
   } catch {
     return DEFAULT_FAVORITES;
   }

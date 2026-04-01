@@ -2,9 +2,9 @@ import type { FileUIPart } from "ai";
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export const MAX_TOTAL_SIZE = 20 * 1024 * 1024; // 20MB
-export const ACCEPTED_TYPES = "image/*,application/pdf,text/*";
+export const ACCEPTED_TYPES = "image/*";
 
-const ACCEPTED_MIME_PREFIXES = ["image/", "text/", "application/pdf"];
+const ACCEPTED_MIME_PREFIXES = ["image/"];
 
 function isAcceptedMimeType(type: string) {
   return ACCEPTED_MIME_PREFIXES.some(
