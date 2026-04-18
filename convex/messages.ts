@@ -31,6 +31,24 @@ async function requireAuthorizedChat(
   return chat;
 }
 
+async function requireMessageInChat(
+  ctx: Pick<MutationCtx, "db">,
+  messageId: Id<"messages">,
+  chatId: Id<"chats">,
+  expectedRole?: "assistant" | "user",
+) {
+  const message = await ctx.db.get(messageId);
+  if (!message || message.chatId !== chatId) {
+    throw new Error("Invalid parent message");
+  }
+
+  if (expectedRole && message.role !== expectedRole) {
+    throw new Error("Invalid parent message");
+  }
+
+  return message;
+}
+
 export const getMessages = query({
   args: { chatId: v.id("chats") },
   handler: async (ctx, args) => {
@@ -78,6 +96,14 @@ export const saveUserMessage = mutation({
   },
   handler: async (ctx, args) => {
     await requireAuthorizedChat(ctx, args.chatId);
+    if (args.parentMessageId) {
+      await requireMessageInChat(
+        ctx,
+        args.parentMessageId,
+        args.chatId,
+        "assistant",
+      );
+    }
 
     const now = Date.now();
     await ctx.db.patch(args.chatId, { updatedAt: now });
@@ -108,6 +134,7 @@ export const saveAssistantMessage = mutation({
   },
   handler: async (ctx, args) => {
     await requireAuthorizedChat(ctx, args.chatId);
+    await requireMessageInChat(ctx, args.parentMessageId, args.chatId, "user");
 
     const now = Date.now();
     await ctx.db.patch(args.chatId, { updatedAt: now });

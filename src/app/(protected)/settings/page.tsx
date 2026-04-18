@@ -1,10 +1,15 @@
-"use client";
-
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { SettingsContent } from "@/components/settings/settings-content";
 import { Skeleton } from "@/components/ui/skeleton";
+import { stackServerApp } from "@/stack/server";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await stackServerApp.getUser();
+  if (!user) {
+    redirect("/sign-in");
+  }
+
   return (
     <Suspense
       fallback={

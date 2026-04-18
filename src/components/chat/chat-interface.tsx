@@ -2,6 +2,7 @@
 
 import { type UIMessage, useChat } from "@ai-sdk/react";
 import { Icon } from "@iconify/react";
+import { useUser } from "@stackframe/stack";
 import { DefaultChatTransport, type FileUIPart } from "ai";
 import { useConvex, useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
@@ -45,6 +46,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getDefaultModelValue, isSupportedModel } from "@/constant/ai-model";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { chatHomePath, chatPath } from "@/lib/chat-routes";
+import {
+  consumePendingChatDraft,
+  savePendingChatDraft,
+} from "@/lib/pending-chat-draft";
 import type {
   Attachment,
   ChatMessage,
@@ -269,6 +274,7 @@ export function ChatInterface({
   initialNextCursor = null,
 }: ChatInterfaceProps) {
   const router = useRouter();
+  const user = useUser();
   const convex = useConvex();
   const { state: sidebarState } = useSidebar();
   const [chatId, setChatId] = useState<string | undefined>(initialChatId);
@@ -299,6 +305,7 @@ export function ChatInterface({
   const lastAppliedStoredSyncKeyRef = useRef<string>(
     getStoredSyncKey(initialMessages),
   );
+  const restoredDraftRef = useRef(false);
 
   const createChat = useMutation(api.chats.createChat);
   const updateTitleMutation = useMutation(api.chats.updateChatTitle);
@@ -484,6 +491,23 @@ export function ChatInterface({
   }, [status]);
 
   useEffect(() => {
+    if (restoredDraftRef.current || !user || chatId) return;
+
+    restoredDraftRef.current = true;
+    const draft = consumePendingChatDraft();
+    if (!draft) return;
+
+    setInput(draft.text);
+    setSearchMode(draft.mode);
+    setPendingFiles(draft.files);
+    toast.success(
+      draft.files.length > 0
+        ? "Your draft was restored."
+        : "Your message is ready to send.",
+    );
+  }, [chatId, user]);
+
+  useEffect(() => {
     const storedSyncKey = getStoredSyncKey(visibleStoredUiMessages);
     if (storedSyncKey === lastAppliedStoredSyncKeyRef.current) return;
     if (isLoading) return;
@@ -534,6 +558,24 @@ export function ChatInterface({
         : undefined;
 
     const filesToSend = hasFiles ? [...pendingFiles] : undefined;
+
+    if (!user) {
+      const draftState = savePendingChatDraft({
+        text: messageText,
+        mode: searchMode,
+        files: filesToSend ?? [],
+      });
+
+      toast.info(
+        draftState.saved
+          ? draftState.preservedFiles
+            ? "Sign in to send your message."
+            : "Sign in to send your message. Attachments need to be added again."
+          : "Sign in to send your message.",
+      );
+      router.push("/sign-in");
+      return;
+    }
 
     let nextChatId = chatId;
     if (!nextChatId) {
