@@ -581,7 +581,7 @@ export function ChatInterface({
     if (!nextChatId) {
       nextChatId = await createChat({ title: "New Chat" });
       setChatId(nextChatId);
-      window.history.replaceState(null, "", chatPath(nextChatId));
+      router.replace(chatPath(nextChatId));
       setPendingSubmission({
         chatId: nextChatId,
         text: messageText,
