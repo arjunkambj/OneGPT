@@ -354,10 +354,16 @@ export function ChatInterface({
           ...message,
           parts: message.parts as ChatMessage["parts"],
         }),
-      ) ?? initialMessages;
+      ) ?? (chatId === initialChatId ? initialMessages : []);
 
     return mergeUniqueMessages([...olderMessages, ...queriedMessages]);
-  }, [bootstrap?.messages, initialMessages, olderMessages]);
+  }, [
+    bootstrap?.messages,
+    chatId,
+    initialChatId,
+    initialMessages,
+    olderMessages,
+  ]);
 
   const childrenByParent = useMemo(
     () => buildChildrenByParent(authoritativeMessages),
@@ -411,19 +417,61 @@ export function ChatInterface({
 
   const isLoading = status === "submitted" || status === "streaming";
 
+  const resetChatState = useCallback(
+    (nextChatId?: string, options?: { preserveDraft?: boolean }) => {
+      setChatId(nextChatId);
+      setInput("");
+      setSearchMode("chat");
+      setPendingSubmission(null);
+      setOlderMessages([]);
+      setHasMoreOlder(false);
+      setNextCursor(null);
+      setSelectedChildByParentId({});
+      setPendingFocusParentId(undefined);
+      setActiveRequestMode(null);
+      setPendingFiles([]);
+      setMessages([]);
+      lastAppliedStoredSyncKeyRef.current = ROOT_BRANCH_KEY;
+
+      if (!options?.preserveDraft) {
+        restoredDraftRef.current = false;
+      }
+    },
+    [setMessages],
+  );
+
   useEffect(() => {
-    setChatId(initialChatId);
-    setInput("");
-    setSearchMode("chat");
-    setPendingSubmission(null);
-    setOlderMessages([]);
+    resetChatState(initialChatId, { preserveDraft: true });
     setHasMoreOlder(initialHasMoreOlder);
     setNextCursor(initialNextCursor);
-    setSelectedChildByParentId({});
-    setPendingFocusParentId(undefined);
-    setActiveRequestMode(null);
-    setPendingFiles([]);
-  }, [initialChatId, initialHasMoreOlder, initialNextCursor]);
+  }, [initialChatId, initialHasMoreOlder, initialNextCursor, resetChatState]);
+
+  useEffect(() => {
+    const syncChatStateFromPath = () => {
+      const path = window.location.pathname;
+
+      if (path === chatHomePath || path === "/new") {
+        resetChatState(undefined);
+        return;
+      }
+
+      const match = path.match(/^\/chat\/([^/]+)$/);
+      if (!match) return;
+
+      const nextChatId = decodeURIComponent(match[1]);
+      if (nextChatId === chatId) return;
+
+      resetChatState(nextChatId);
+    };
+
+    window.addEventListener("popstate", syncChatStateFromPath);
+    window.addEventListener("chat-path-change", syncChatStateFromPath);
+
+    return () => {
+      window.removeEventListener("popstate", syncChatStateFromPath);
+      window.removeEventListener("chat-path-change", syncChatStateFromPath);
+    };
+  }, [chatId, resetChatState]);
 
   useEffect(() => {
     if (!bootstrap || olderMessages.length > 0) return;
@@ -432,10 +480,10 @@ export function ChatInterface({
   }, [bootstrap, olderMessages.length]);
 
   useEffect(() => {
-    if (!initialChatId || chatId !== initialChatId || bootstrap !== null)
-      return;
-    router.replace(chatHomePath);
-  }, [bootstrap, chatId, initialChatId, router]);
+    if (!chatId || bootstrap !== null) return;
+    window.history.replaceState(null, "", chatHomePath);
+    window.dispatchEvent(new Event("chat-path-change"));
+  }, [bootstrap, chatId]);
 
   useEffect(() => {
     if (isSupportedModel(selectedModel)) return;
@@ -764,13 +812,15 @@ export function ChatInterface({
   }, []);
 
   const hasMessages = displayMessages.length > 0;
-  const displayTitle = bootstrap?.chat.title ?? initialChatTitle;
+  const displayTitle =
+    bootstrap?.chat.title ??
+    (chatId === initialChatId ? initialChatTitle : undefined);
   const showHeaderDropdown =
     Boolean(chatId) && displayTitle && displayTitle !== "New Chat";
   const isBootstrappingExistingChat =
-    Boolean(initialChatId) &&
+    Boolean(chatId) &&
     bootstrap === undefined &&
-    initialMessages.length === 0;
+    authoritativeMessages.length === 0;
 
   const handleStartEditTitle = () => {
     if (!chatId) return;
@@ -807,7 +857,8 @@ export function ChatInterface({
       await deleteChatMutation({ chatId: chatId as Id<"chats"> });
       toast.success("Chat deleted");
       setIsDeleteOpen(false);
-      router.push(chatHomePath);
+      window.history.replaceState(null, "", chatHomePath);
+      window.dispatchEvent(new Event("chat-path-change"));
     } catch {
       toast.error("Failed to delete chat");
     } finally {

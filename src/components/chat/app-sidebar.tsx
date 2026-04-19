@@ -492,10 +492,11 @@ export const AppSidebar = memo(function AppSidebar({
   const handleChatSelect = useCallback(
     (chatId: string) => {
       closeMobileSidebar();
-      router.push(chatPath(chatId));
+      window.history.pushState(null, "", chatPath(chatId));
+      window.dispatchEvent(new Event("chat-path-change"));
       onChatSelect?.(chatId);
     },
-    [closeMobileSidebar, onChatSelect, router],
+    [closeMobileSidebar, onChatSelect],
   );
 
   const prefetchChatRoute = useCallback(
@@ -519,7 +520,8 @@ export const AppSidebar = memo(function AppSidebar({
     }
     if (currentPath === chatHomePath || currentPath === newChatPath) return;
     onNewChat?.();
-    router.push(newChatPath);
+    window.history.pushState(null, "", newChatPath);
+    window.dispatchEvent(new Event("chat-path-change"));
   }, [closeMobileSidebar, currentPath, onNewChat, user, router]);
 
   const handleTogglePin = useCallback(
@@ -570,13 +572,14 @@ export const AppSidebar = memo(function AppSidebar({
     try {
       await deleteMutation({ chatId: deleteTarget.id as Id<"chats"> });
       if (currentPath.includes(deleteTarget.id)) {
-        router.replace(chatHomePath);
+        window.history.replaceState(null, "", chatHomePath);
+        window.dispatchEvent(new Event("chat-path-change"));
       }
     } finally {
       setIsDeleting(false);
       closeDeleteDialog();
     }
-  }, [currentPath, deleteTarget, closeDeleteDialog, deleteMutation, router]);
+  }, [currentPath, deleteTarget, closeDeleteDialog, deleteMutation]);
 
   // ---- Render helpers ----
   const renderChatItem = useCallback(
