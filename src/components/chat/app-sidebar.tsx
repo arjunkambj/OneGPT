@@ -498,10 +498,11 @@ export const AppSidebar = memo(function AppSidebar({
       router.push("/sign-in");
       return;
     }
-    if (pathname === chatHomePath || pathname === newChatPath) return;
+    const currentPath = window.location.pathname;
+    if (currentPath === chatHomePath || currentPath === newChatPath) return;
     onNewChat?.();
     router.push(newChatPath);
-  }, [closeMobileSidebar, onNewChat, pathname, user, router]);
+  }, [closeMobileSidebar, onNewChat, user, router]);
 
   const handleTogglePin = useCallback(
     (chatId: string) => {
