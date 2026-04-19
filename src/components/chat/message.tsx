@@ -236,7 +236,10 @@ function ErrorDisplay({ error }: { error: string }) {
 function ResponseInfoButton({
   message,
   className,
-}: { message: ChatMessage; className?: string }) {
+}: {
+  message: ChatMessage;
+  className?: string;
+}) {
   const hasMetadata =
     message.model ||
     message.inputTokens ||
@@ -429,7 +432,8 @@ function SourcesSection({
         />
         <Icon icon="solar:global-linear" className="h-3 w-3" />
         <span className="text-xs">
-          {uniqueSources.length} {uniqueSources.length === 1 ? "Source" : "Sources"}
+          {uniqueSources.length}{" "}
+          {uniqueSources.length === 1 ? "Source" : "Sources"}
         </span>
       </button>
 
@@ -614,22 +618,38 @@ export const Message = React.memo(function Message({
         part.type === "source-url",
     );
 
+    // Merge all reasoning parts into one to prevent duplicate reasoning sections
+    const reasoningParts = message.parts.filter(
+      (part): part is Extract<MessagePart, { type: "reasoning" }> =>
+        part.type === "reasoning",
+    );
+    const mergedReasoning =
+      reasoningParts.length > 0
+        ? {
+            reasoning: reasoningParts.map((p) => p.reasoning).join(""),
+            details: reasoningParts[0]?.details,
+            state: reasoningParts[reasoningParts.length - 1]?.state,
+          }
+        : null;
+
     return (
       <div className={cn("group/message", isLast && "min-h-[200px]")}>
         <TextSelectionPopup onQuote={onQuote}>
           <div className="space-y-1">
+            {mergedReasoning && (
+              <ReasoningSection
+                key={`${message.id}-reasoning`}
+                reasoning={mergedReasoning.reasoning}
+                details={mergedReasoning.details}
+                state={mergedReasoning.state}
+              />
+            )}
+
             {message.parts.map((part, index) => {
               const key = `${message.id}-part-${index}`;
 
               if (part.type === "reasoning") {
-                return (
-                  <ReasoningSection
-                    key={key}
-                    reasoning={part.reasoning}
-                    details={part.details}
-                    state={part.state}
-                  />
-                );
+                return null; // Skip individual reasoning parts since we merged them
               }
 
               if (part.type === "text" && part.text.trim()) {
