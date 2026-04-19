@@ -582,6 +582,7 @@ export function ChatInterface({
       nextChatId = await createChat({ title: "New Chat" });
       setChatId(nextChatId);
       window.history.replaceState(null, "", chatPath(nextChatId));
+      window.dispatchEvent(new Event("chat-path-change"));
       setPendingSubmission({
         chatId: nextChatId,
         text: messageText,

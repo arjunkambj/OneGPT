@@ -8,7 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -416,10 +416,29 @@ export const AppSidebar = memo(function AppSidebar({
   const pathname = usePathname();
   const user = useUser();
   const { isProUser, isLoading: isSubscriptionLoading } = useSubscription();
+  const [currentPath, setCurrentPath] = useState(pathname ?? "");
 
   const userName = user?.displayName ?? "User";
   const userEmail = user?.primaryEmail ?? "";
   const userImage = user?.profileImageUrl || undefined;
+
+  useEffect(() => {
+    setCurrentPath(pathname ?? window.location.pathname);
+  }, [pathname]);
+
+  useEffect(() => {
+    const syncCurrentPath = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener("popstate", syncCurrentPath);
+    window.addEventListener("chat-path-change", syncCurrentPath);
+
+    return () => {
+      window.removeEventListener("popstate", syncCurrentPath);
+      window.removeEventListener("chat-path-change", syncCurrentPath);
+    };
+  }, []);
 
   // ---- Real Convex data ----
   const chatsData = useQuery(api.chats.listChats);
@@ -498,11 +517,10 @@ export const AppSidebar = memo(function AppSidebar({
       router.push("/sign-in");
       return;
     }
-    const currentPath = window.location.pathname;
     if (currentPath === chatHomePath || currentPath === newChatPath) return;
     onNewChat?.();
     router.push(newChatPath);
-  }, [closeMobileSidebar, onNewChat, user, router]);
+  }, [closeMobileSidebar, currentPath, onNewChat, user, router]);
 
   const handleTogglePin = useCallback(
     (chatId: string) => {
@@ -551,19 +569,20 @@ export const AppSidebar = memo(function AppSidebar({
     setIsDeleting(true);
     try {
       await deleteMutation({ chatId: deleteTarget.id as Id<"chats"> });
-      if (pathname?.includes(deleteTarget.id)) {
+      if (currentPath.includes(deleteTarget.id)) {
         router.replace(chatHomePath);
       }
     } finally {
       setIsDeleting(false);
       closeDeleteDialog();
     }
-  }, [deleteTarget, closeDeleteDialog, deleteMutation, pathname, router]);
+  }, [currentPath, deleteTarget, closeDeleteDialog, deleteMutation, router]);
 
   // ---- Render helpers ----
   const renderChatItem = useCallback(
     (chat: ChatItem) => {
-      const isActive = activeChatId === chat.id || pathname?.includes(chat.id);
+      const isActive =
+        activeChatId === chat.id || currentPath.includes(chat.id);
       return (
         <ChatItemRow
           key={chat.id}
@@ -580,7 +599,7 @@ export const AppSidebar = memo(function AppSidebar({
     },
     [
       activeChatId,
-      pathname,
+      currentPath,
       handleChatSelect,
       prefetchChatRoute,
       openRenameDialog,
@@ -642,7 +661,7 @@ export const AppSidebar = memo(function AppSidebar({
               tooltip="New Chat"
               className={cn(
                 "text-sidebar-accent-foreground font-medium transition-all duration-200 active:scale-[0.98] group-data-[collapsible=icon]:justify-center",
-                pathname === "/" || pathname === "/new"
+                currentPath === "/" || currentPath === "/new"
                   ? "bg-primary/10 hover:bg-primary/20"
                   : "hover:bg-primary/8",
               )}
