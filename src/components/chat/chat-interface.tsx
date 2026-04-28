@@ -1019,7 +1019,7 @@ export function ChatInterface({
           />
         </>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center px-4">
+        <div className="flex flex-1 flex-col items-center justify-center px-4 pb-32">
           <div className="mb-8 flex items-center gap-3">
             <Image
               src="/Black.svg"
