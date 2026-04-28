@@ -276,9 +276,9 @@ export const models: Model[] = [
     },
   },
   {
-    value: "onegpt-kimi-k2.5",
-    openrouterId: "moonshotai/kimi-k2.5",
-    label: "Kimi K2.5",
+    value: "onegpt-kimi-k2.6",
+    openrouterId: "moonshotai/kimi-k2.6",
+    label: "Kimi K2.6",
     description: "MoonShot AI's latest vision-enabled LLM",
     vision: true,
     reasoning: true,
@@ -381,9 +381,9 @@ export const models: Model[] = [
     provider: "zhipu",
   },
   {
-    value: "onegpt-glm-5",
-    openrouterId: "z-ai/glm-5",
-    label: "GLM 5",
+    value: "onegpt-glm-5.1",
+    openrouterId: "z-ai/glm-5.1",
+    label: "GLM 5.1",
     description: "Zhipu AI's most powerful LLM",
     vision: false,
     reasoning: false,
@@ -512,12 +512,12 @@ export type SupportedModel = string;
 
 const SUPPORTED_MODEL_VALUE_SET = new Set(models.map((model) => model.value));
 
-export const DEFAULT_MODEL_VALUE = "onegpt-kimi-k2.5";
+export const DEFAULT_MODEL_VALUE = "onegpt-kimi-k2.6";
 export const TITLE_MODEL_VALUE = "onegpt-minimax-m2.7";
 export const DEFAULT_FAVORITE_MODELS: SupportedModel[] = [
-  "onegpt-kimi-k2.5",
+  "onegpt-kimi-k2.6",
   "onegpt-gpt-5.4",
-  "onegpt-glm-5",
+  "onegpt-glm-5.1",
   "onegpt-minimax-m2.7",
 ];
 export const SUPPORTED_MODEL_VALUES = models.map(
