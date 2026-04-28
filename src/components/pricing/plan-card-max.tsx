@@ -4,10 +4,7 @@ import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const features = [
-  "Anthropic Claude models (60/week)",
-  "Gemini Pro models (80/month)",
-];
+const features = ["Anthropic Claude models (60/week)"];
 
 export function PlanCardMax() {
   const router = useRouter();
@@ -65,9 +62,6 @@ export function PlanCardMax() {
             className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
           />
         </Button>
-        <p className="text-xs text-center text-muted-foreground">
-          Credit/Debit Cards & more (auto-renews monthly)
-        </p>
       </div>
     </div>
   );

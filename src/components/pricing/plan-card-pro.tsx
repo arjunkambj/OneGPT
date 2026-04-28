@@ -70,9 +70,6 @@ export function PlanCardPro() {
             className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
           />
         </Button>
-        <p className="text-xs text-center text-muted-foreground">
-          Credit/Debit Cards & more (auto-renews monthly)
-        </p>
       </div>
     </div>
   );
