@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { stackServerApp } from "@/stack/server";
+import { Databuddy } from "@databuddy/sdk/react";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -103,6 +104,7 @@ export default function RootLayout({
             </StackTheme>
           </StackProvider>
         </ThemeProvider>
+        <Databuddy clientId="4b9193ed-7b55-45b3-9f79-d5a587a0702c" />
       </body>
     </html>
   );
