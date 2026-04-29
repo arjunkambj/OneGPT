@@ -59,7 +59,9 @@ const schema = defineSchema({
     imageUrl: v.optional(v.string()),
     updatedAt: v.number(),
     createdAt: v.number(),
-  }).index("by_stackId", ["stackId"]),
+  })
+    .index("by_stackId", ["stackId"])
+    .index("by_email", ["email"]),
 
   // -------------------------------------------------------------------------
   // Chats
@@ -158,7 +160,9 @@ const schema = defineSchema({
     metadata: v.optional(v.any()),
     updatedAt: v.number(),
     createdAt: v.number(),
-  }).index("by_userId", ["userId"]),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_externalId", ["externalId"]),
 });
 
 export default schema;

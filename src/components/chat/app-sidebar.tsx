@@ -491,12 +491,12 @@ export const AppSidebar = memo(function AppSidebar({
   // ---- Handlers ----
   const handleChatSelect = useCallback(
     (chatId: string) => {
+      const path = chatPath(chatId);
       closeMobileSidebar();
-      window.history.pushState(null, "", chatPath(chatId));
-      window.dispatchEvent(new Event("chat-path-change"));
       onChatSelect?.(chatId);
+      router.push(path);
     },
-    [closeMobileSidebar, onChatSelect],
+    [closeMobileSidebar, onChatSelect, router],
   );
 
   const prefetchChatRoute = useCallback(
@@ -520,8 +520,7 @@ export const AppSidebar = memo(function AppSidebar({
     }
     if (currentPath === chatHomePath || currentPath === newChatPath) return;
     onNewChat?.();
-    window.history.pushState(null, "", newChatPath);
-    window.dispatchEvent(new Event("chat-path-change"));
+    router.push(newChatPath);
   }, [closeMobileSidebar, currentPath, onNewChat, user, router]);
 
   const handleTogglePin = useCallback(

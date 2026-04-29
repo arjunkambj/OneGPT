@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getModelConfig } from "@/constant/ai-model";
+import { useSubscription } from "@/hooks/use-subscription";
 import type { ChatMessage, MessagePart } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
@@ -363,6 +364,7 @@ function RetryWithModelButton({
   currentModel?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const { isProUser, isMaxUser } = useSubscription();
 
   return (
     <ModelSelector
@@ -373,6 +375,8 @@ function RetryWithModelButton({
       }}
       open={open}
       onOpenChange={setOpen}
+      isProUser={isProUser}
+      isMaxUser={isMaxUser}
     >
       <Button
         variant="ghost"

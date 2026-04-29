@@ -16,6 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { models } from "@/constant/ai-model";
+import { useSubscription } from "@/hooks/use-subscription";
 import {
   ACCEPTED_TYPES,
   filesToFileUIParts,
@@ -162,6 +163,7 @@ export function FormComponent({
   onFilesChange,
   attachmentsEnabled = true,
 }: FormComponentProps) {
+  const { isProUser, isMaxUser } = useSubscription();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -506,6 +508,8 @@ export function FormComponent({
                   <ModelSelector
                     selectedModel={selectedModel}
                     onModelChange={onModelChange}
+                    isProUser={isProUser}
+                    isMaxUser={isMaxUser}
                   >
                     <button
                       type="button"
