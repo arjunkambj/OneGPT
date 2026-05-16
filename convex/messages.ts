@@ -9,7 +9,7 @@ import { attachment, messagePart } from "./schema";
 const chatMode = v.union(v.literal("chat"), v.literal("search"));
 
 async function getAuthorizedChat(
-  ctx: Pick<QueryCtx | MutationCtx, "auth" | "db">,
+  ctx: QueryCtx | MutationCtx,
   chatId: Id<"chats">,
 ) {
   const user = await getCurrentUser(ctx);
@@ -21,10 +21,7 @@ async function getAuthorizedChat(
   return chat;
 }
 
-async function requireAuthorizedChat(
-  ctx: Pick<MutationCtx, "auth" | "db">,
-  chatId: Id<"chats">,
-) {
+async function requireAuthorizedChat(ctx: MutationCtx, chatId: Id<"chats">) {
   const user = await requireCurrentUser(ctx);
   const chat = await ctx.db.get(chatId);
   if (!chat || chat.userId !== user._id) throw new Error("Chat not found");

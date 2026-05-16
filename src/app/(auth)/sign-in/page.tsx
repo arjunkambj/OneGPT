@@ -2,6 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import { useStackApp } from "@stackframe/stack";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -76,10 +77,18 @@ export default function SignInPage() {
     <div className="flex w-full max-w-sm flex-col gap-6">
       <div className="text-center">
         <div className="flex justify-center mb-4">
-          <img src="/Black.svg" alt="OneGPT" className="size-8 logo-dark" />
-          <img
+          <Image
+            src="/Black.svg"
+            alt="OneGPT"
+            width={32}
+            height={32}
+            className="size-8 logo-dark"
+          />
+          <Image
             src="/white.svg"
             alt="OneGPT"
+            width={32}
+            height={32}
             className="size-8 hidden logo-light"
           />
         </div>

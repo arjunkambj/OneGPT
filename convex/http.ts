@@ -135,11 +135,18 @@ function getDodoResolvedTier(
   return getDodoTier(productId);
 }
 
-function getDodoStatus(type: string) {
+function getDodoStatus(type: string, data: DodoWebhookData) {
   if (type === "subscription.created" || type === "subscription.trialing") {
     return "trialing";
   }
   if (type === "subscription.on_hold") return "past_due";
+  if (
+    (type === "subscription.cancelled" || type === "subscription.canceled") &&
+    data.cancel_at_next_billing_date &&
+    (toTimestamp(data.next_billing_date) ?? 0) > Date.now()
+  ) {
+    return "active";
+  }
   if (
     type === "subscription.cancelled" ||
     type === "subscription.canceled" ||
@@ -176,10 +183,16 @@ http.route({
       return new Response("Invalid signature", { status: 401 });
     }
 
-    const event = JSON.parse(body) as {
+    let event: {
       type: string;
       data: DodoWebhookData;
     };
+
+    try {
+      event = JSON.parse(body) as typeof event;
+    } catch {
+      return new Response("Invalid JSON", { status: 400 });
+    }
 
     console.log("[Dodo webhook] received", {
       type: event.type,
@@ -212,7 +225,7 @@ http.route({
         customerEmail: data.customer?.email,
         customerId: data.customer?.customer_id ?? data.customer_id,
         productId,
-        status: getDodoStatus(event.type),
+        status: getDodoStatus(event.type, data),
         tier: tier ?? undefined,
         amount: data.recurring_pre_tax_amount,
         currency: data.currency,

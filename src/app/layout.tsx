@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Figtree, Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
+import { Databuddy } from "@databuddy/sdk/react";
 import { StackProvider, StackTheme } from "@stackframe/stack";
 import { ThemeProvider } from "next-themes";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { stackServerApp } from "@/stack/server";
-import { Databuddy } from "@databuddy/sdk/react";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 

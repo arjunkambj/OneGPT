@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: InputGroup is a layout primitive around inputs/addons, not a form fieldset.
     <div
       data-slot="input-group"
       role="group"
@@ -48,6 +49,7 @@ function InputGroupAddon({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/useSemanticElements: Addon clicks only forward focus to the input; keyboard users tab to the input directly.
     <div
       role="group"
       data-slot="input-group-addon"

@@ -13,16 +13,14 @@ export const getUserSubscription = query({
     const subscriptions = await ctx.db
       .query("subscriptions")
       .withIndex("by_userId", (q) => q.eq("userId", user._id))
-      .take(20);
+      .take(50);
 
     return (
       subscriptions
         .filter((subscription) =>
           ["active", "trialing", "past_due"].includes(subscription.status),
         )
-        .sort((a, b) => b.updatedAt - a.updatedAt)[0] ??
-      subscriptions.sort((a, b) => b.updatedAt - a.updatedAt)[0] ??
-      null
+        .sort((left, right) => right.updatedAt - left.updatedAt)[0] ?? null
     );
   },
 });
@@ -55,6 +53,11 @@ export const syncFromDodoWebhook = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const email = args.customerEmail?.trim().toLowerCase();
+    const existing = await ctx.db
+      .query("subscriptions")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .first();
+    const existingUser = existing ? await ctx.db.get(existing.userId) : null;
     const stackId = args.stackId;
     const user = stackId
       ? await ctx.db
@@ -64,6 +67,7 @@ export const syncFromDodoWebhook = internalMutation({
       : null;
 
     const resolvedUser =
+      existingUser ??
       user ??
       (email
         ? await ctx.db
@@ -75,11 +79,6 @@ export const syncFromDodoWebhook = internalMutation({
     if (!resolvedUser) {
       throw new Error("Unable to resolve subscription user");
     }
-
-    const existing = await ctx.db
-      .query("subscriptions")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .first();
 
     const tier = args.tier ?? existing?.tier;
     if (!tier || tier === "free") {

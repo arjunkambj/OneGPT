@@ -237,9 +237,9 @@ export default function TermsPage() {
                     {section.title}
                   </h2>
 
-                  {section.paragraphs?.map((p, j) => (
+                  {section.paragraphs?.map((p) => (
                     <p
-                      key={j}
+                      key={`${section.id}-paragraph-${p}`}
                       className="text-[15px] text-muted-foreground leading-relaxed mb-4"
                     >
                       {p}
@@ -248,9 +248,13 @@ export default function TermsPage() {
 
                   {section.items && (
                     <div className="space-y-3 my-5 pl-4">
-                      {section.items.map((item, k) => (
+                      {section.items.map((item) => (
                         <div
-                          key={k}
+                          key={
+                            typeof item === "string"
+                              ? `${section.id}-item-${item}`
+                              : `${section.id}-item-${item.bold}-${item.text}`
+                          }
                           className="flex gap-3 text-[15px] text-muted-foreground leading-relaxed"
                         >
                           <span className="text-muted-foreground/40 mt-1.5 shrink-0">
@@ -273,9 +277,9 @@ export default function TermsPage() {
                     </div>
                   )}
 
-                  {section.afterItems?.map((p, j) => (
+                  {section.afterItems?.map((p) => (
                     <p
-                      key={j}
+                      key={`${section.id}-after-${p}`}
                       className="text-[15px] text-muted-foreground leading-relaxed mb-4"
                     >
                       {p}

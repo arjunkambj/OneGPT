@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface LegalHeaderProps {
@@ -18,15 +19,29 @@ export function LegalHeader({ currentPage }: LegalHeaderProps) {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between h-14 px-6">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <img src="/Black.svg" alt="OneGPT" className="size-5 logo-dark" />
-            <img
+            <Image
+              src="/Black.svg"
+              alt="OneGPT"
+              width={20}
+              height={20}
+              className="size-5 logo-dark"
+            />
+            <Image
               src="/white.svg"
               alt="OneGPT"
+              width={20}
+              height={20}
               className="size-5 hidden logo-light"
             />
             <span className="text-lg font-light tracking-tighter">OneGPT</span>
           </Link>
           <div className="flex items-center gap-4">
+            <Link
+              href={crossLink.href}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {crossLink.label}
+            </Link>
             <Link
               href="/"
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"

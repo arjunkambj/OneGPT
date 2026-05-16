@@ -1,7 +1,5 @@
 "use client";
 
-import { MinusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { OTPInput, OTPInputContext } from "input-otp";
 import * as React from "react";
 import { cn } from "@/lib/utils";
@@ -70,16 +68,16 @@ function InputOTPSlot({
   );
 }
 
-function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
+function InputOTPSeparator({
+  className,
+  ...props
+}: React.ComponentProps<"hr">) {
   return (
-    <div
+    <hr
       data-slot="input-otp-separator"
-      className="flex items-center [&_svg:not([class*='size-'])]:size-4"
-      role="separator"
+      className={cn("mx-2 w-2 border-input", className)}
       {...props}
-    >
-      <HugeiconsIcon icon={MinusSignIcon} strokeWidth={2} />
-    </div>
+    />
   );
 }
 

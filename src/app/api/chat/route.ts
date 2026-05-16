@@ -1,5 +1,6 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import {
+  consumeStream,
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -13,6 +14,8 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { after } from "next/server";
 import { z } from "zod";
 import {
+  canUseModel,
+  getModelConfig,
   getOpenRouterModelId,
   getOpenRouterProviderOptions,
   getTitleModelValue,
@@ -136,6 +139,14 @@ function isChatMode(value: unknown): value is ChatMode {
   return value === "chat" || value === "search";
 }
 
+function getModelTier(modelValue: string) {
+  const config = getModelConfig(modelValue);
+  if (!config) throw new Error(`Unsupported model: ${modelValue}`);
+  if (config.max) return "max";
+  if (config.pro) return "pro";
+  return "free";
+}
+
 function getTextFromParts(parts: Array<{ type: "text"; text: string }>) {
   return parts
     .map((part) => part.text)
@@ -226,24 +237,22 @@ async function generateSearchQueries({
   model: string;
   providerOptions?: ReturnType<typeof getOpenRouterProviderOptions>;
 }) {
-  try {
-    const result = await generateText({
-      model: openrouter(model),
-      providerOptions,
-      prompt: [
-        "Generate three concise web search queries for this question.",
-        "Return only the queries, one per line, with no numbering or commentary.",
-        `Question: ${userText}`,
-      ].join("\n"),
-    });
+  const result = await generateText({
+    model: openrouter(model),
+    providerOptions,
+    prompt: [
+      "Generate three concise web search queries for this question.",
+      "Return only the queries, one per line, with no numbering or commentary.",
+      `Question: ${userText}`,
+    ].join("\n"),
+  });
 
-    const queries = parseSearchQueries(result.text);
-    if (queries.length > 0) return queries;
-  } catch (error) {
-    console.error("Failed to generate search queries:", error);
+  const queries = parseSearchQueries(result.text);
+  if (queries.length === 0) {
+    throw new Error("Search query generation returned no usable queries.");
   }
 
-  return [userText];
+  return queries;
 }
 
 async function searchExa(queries: string[]) {
@@ -421,11 +430,13 @@ export async function POST(req: Request) {
   }
 
   const typedChatId = chatId as Id<"chats">;
-  const [storedMessages, storedChat, customInstructions] = await Promise.all([
-    fetchQuery(api.messages.getMessages, { chatId: typedChatId }, { token }),
-    fetchQuery(api.chats.getChat, { chatId: typedChatId }, { token }),
-    fetchQuery(api.customInstructions.getCustomInstructions, {}, { token }),
-  ]);
+  const [storedMessages, storedChat, customInstructions, subscription] =
+    await Promise.all([
+      fetchQuery(api.messages.getMessages, { chatId: typedChatId }, { token }),
+      fetchQuery(api.chats.getChat, { chatId: typedChatId }, { token }),
+      fetchQuery(api.customInstructions.getCustomInstructions, {}, { token }),
+      fetchQuery(api.subscriptions.getUserSubscription, {}, { token }),
+    ]);
 
   if (!storedMessages) {
     return new Response("Chat not found", { status: 404 });
@@ -438,6 +449,24 @@ export async function POST(req: Request) {
   const branchMessages = storedMessages as StoredMessage[];
   const openRouterModelId = getOpenRouterModelId(model);
   const openRouterProviderOptions = getOpenRouterProviderOptions(model);
+  const hasActiveSubscription =
+    subscription?.status === "active" ||
+    subscription?.status === "trialing" ||
+    subscription?.status === "past_due";
+  const isProUser =
+    hasActiveSubscription &&
+    (subscription?.tier === "pro" || subscription?.tier === "max");
+  const isMaxUser = hasActiveSubscription && subscription?.tier === "max";
+  const access = canUseModel(model, user, isProUser, isMaxUser);
+
+  if (!access.canUse) {
+    return Response.json(
+      { error: access.reason ?? "Model access denied" },
+      { status: 403 },
+    );
+  }
+
+  const modelTier = getModelTier(model);
   const isRegenerate = trigger === "regenerate-message";
   const latestUserMessage = [...messages].reverse().find((candidate) => {
     if (candidate.role !== "user") return false;
@@ -509,6 +538,22 @@ export async function POST(req: Request) {
       return new Response("Missing user content", { status: 400 });
     }
 
+    try {
+      await fetchMutation(
+        api.usage.trackChatTurn,
+        { mode: requestMode, modelTier },
+        { token },
+      );
+    } catch (error) {
+      return Response.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Credit check failed.",
+        },
+        { status: 403 },
+      );
+    }
+
     // Build attachments for Convex persistence
     const attachments = hasFiles
       ? latestUserFileParts.map((fp) => ({
@@ -537,12 +582,6 @@ export async function POST(req: Request) {
       { token },
     );
 
-    await fetchMutation(
-      api.usage.trackChatTurn,
-      { mode: requestMode },
-      { token },
-    );
-
     // Include both text and file parts in the request messages for the model
     const userMessageParts: UIMessage["parts"] = [
       ...latestUserParts,
@@ -559,6 +598,24 @@ export async function POST(req: Request) {
     ];
     shouldGenerateTitle =
       storedChat.title === "New Chat" && branchMessages.length === 0;
+  }
+
+  if (isRegenerate) {
+    try {
+      await fetchMutation(
+        api.usage.trackChatTurn,
+        { mode: requestMode, modelTier },
+        { token },
+      );
+    } catch (error) {
+      return Response.json(
+        {
+          error:
+            error instanceof Error ? error.message : "Credit check failed.",
+        },
+        { status: 403 },
+      );
+    }
   }
 
   const startTime = Date.now();
@@ -790,5 +847,8 @@ export async function POST(req: Request) {
     },
   });
 
-  return createUIMessageStreamResponse({ stream });
+  return createUIMessageStreamResponse({
+    stream,
+    consumeSseStream: consumeStream,
+  });
 }

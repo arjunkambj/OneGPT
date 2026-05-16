@@ -596,11 +596,9 @@ export function getTitleModelValue() {
 }
 
 export function getOpenRouterModelId(modelValue: string) {
-  return (
-    getModelConfig(modelValue)?.openrouterId ||
-    getModelConfig(DEFAULT_MODEL_VALUE)?.openrouterId ||
-    "x-ai/grok-4.20-beta"
-  );
+  const model = getModelConfig(modelValue);
+  if (!model) throw new Error(`Unsupported model: ${modelValue}`);
+  return model.openrouterId;
 }
 
 export function mapModelToOpenRouter(modelValue: string) {

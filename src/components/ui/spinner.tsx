@@ -9,6 +9,7 @@ type SpinnerProps = Omit<
 
 function Spinner({ className, strokeWidth = 2, ...props }: SpinnerProps) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: The icon itself is the rendered status indicator for this UI primitive.
     <HugeiconsIcon
       icon={Loading03Icon}
       strokeWidth={strokeWidth}

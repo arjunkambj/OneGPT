@@ -25,6 +25,7 @@ function ButtonGroup({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: ButtonGroup is a layout primitive and should not inherit fieldset semantics/styles.
     <div
       role="group"
       data-slot="button-group"

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant light (&:is(.light *));
@@ -9,7 +10,6 @@
 @custom-variant neutraldark (&:is(.neutraldark *));
 @custom-variant neutrallight (&:is(.neutrallight *));
 
-@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
 /* Line clamp utilities */
@@ -1269,7 +1269,6 @@ body {
 @media screen and (max-width: 1024px) {
   /* Fix for iOS viewport height issues */
   .h-screen {
-    height: 100vh;
     height: 100dvh;
     /* Dynamic viewport height for better mobile support */
   }

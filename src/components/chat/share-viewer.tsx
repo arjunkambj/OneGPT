@@ -2,6 +2,7 @@
 
 import { Icon } from "@iconify/react";
 import { useQuery } from "convex/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -115,9 +116,11 @@ export function ShareViewer({ shareToken }: ShareViewerProps) {
         <div className="flex w-full max-w-2xl mx-auto items-center justify-between px-4 h-12">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <Link href="/" className="shrink-0">
-              <img
+              <Image
                 src="/Black.svg"
                 alt="OneGPT"
+                width={24}
+                height={24}
                 className="h-6 w-6 dark:invert"
               />
             </Link>

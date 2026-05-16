@@ -7,20 +7,6 @@ const tierProductIds = {
   max: process.env.ONEGPT_MAX_PLAN_PRODUCT_ID,
 } as const;
 
-function getDodoEnvironment() {
-  return process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode"
-    ? "live_mode"
-    : "test_mode";
-}
-
-function getBaseUrl(req: Request) {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (configuredUrl) return configuredUrl.replace(/\/$/, "");
-
-  const url = new URL(req.url);
-  return `${url.protocol}//${url.host}`;
-}
-
 export async function POST(req: Request) {
   const user = await stackServerApp.getUser({ tokenStore: req });
   if (!user) {
@@ -43,6 +29,14 @@ export async function POST(req: Request) {
     );
   }
 
+  const environment = process.env.DODO_PAYMENTS_ENVIRONMENT;
+  if (environment !== "test_mode" && environment !== "live_mode") {
+    return NextResponse.json(
+      { error: "Dodo Payments environment is not configured" },
+      { status: 500 },
+    );
+  }
+
   const apiKey = process.env.DODO_PAYMENTS_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -53,9 +47,16 @@ export async function POST(req: Request) {
 
   const client = new DodoPayments({
     bearerToken: apiKey,
-    environment: getDodoEnvironment(),
+    environment,
   });
-  const baseUrl = getBaseUrl(req);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!baseUrl) {
+    return NextResponse.json(
+      { error: "App URL is not configured" },
+      { status: 500 },
+    );
+  }
+
   const email = user.primaryEmail ?? "";
 
   if (!email) {
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
         stackId: user.id,
         tier,
       },
-      return_url: `${baseUrl}/settings?tab=subscription&checkout=success`,
+      return_url: `${baseUrl.replace(/\/$/, "")}/settings?tab=subscription&checkout=success`,
     });
 
     return NextResponse.json({

@@ -30,6 +30,10 @@ export function SettingsContent() {
   const defaultTab = searchParams.get("tab") || "usage";
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { tier, isProUser } = useSubscription();
+  const activeTabConfig = tabs.find((tab) => tab.value === activeTab);
+  if (!activeTabConfig) {
+    throw new Error(`Unknown settings tab: ${activeTab}`);
+  }
 
   const userName = user?.displayName ?? "User";
   const userEmail = user?.primaryEmail ?? "";
@@ -84,17 +88,10 @@ export function SettingsContent() {
             <Select value={activeTab} onValueChange={setActiveTab}>
               <SelectTrigger className="w-full">
                 <SelectValue>
-                  {tabs.find((t) => t.value === activeTab) && (
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        icon={tabs.find((t) => t.value === activeTab)!.icon}
-                        className="h-4 w-4"
-                      />
-                      <span>
-                        {tabs.find((t) => t.value === activeTab)!.label}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Icon icon={activeTabConfig.icon} className="h-4 w-4" />
+                    <span>{activeTabConfig.label}</span>
+                  </div>
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>

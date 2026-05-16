@@ -4,11 +4,12 @@ import { Icon } from "@iconify/react";
 import { useUser } from "@stackframe/stack";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { toast } from "sonner";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,9 +60,17 @@ import {
 import { useSubscription } from "@/hooks/use-subscription";
 import { chatHomePath, chatPath, newChatPath } from "@/lib/chat-routes";
 import { cn } from "@/lib/utils";
-import { ShareDialog } from "./share-dialog";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { ShareDialog } from "./share-dialog";
+
+const CHAT_SKELETON_KEYS = [
+  "chat-skeleton-1",
+  "chat-skeleton-2",
+  "chat-skeleton-3",
+  "chat-skeleton-4",
+  "chat-skeleton-5",
+];
 
 // ---------------------------------------------------------------------------
 // Types
@@ -194,10 +203,13 @@ function UserDropdownContent() {
         {/* Theme accordion */}
         <div>
           <button
+            type="button"
             onClick={() => setThemeOpen((prev) => !prev)}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm outline-none hover:bg-accent hover:text-accent-foreground cursor-default"
           >
             <svg
+              aria-hidden="true"
+              focusable="false"
               width={16}
               height={16}
               viewBox="0 0 20 20"
@@ -260,6 +272,7 @@ function UserDropdownContent() {
               >
                 {themes.map((t) => (
                   <button
+                    type="button"
                     key={t.value}
                     onClick={() => setTheme(t.value)}
                     className={cn(
@@ -270,6 +283,8 @@ function UserDropdownContent() {
                     )}
                   >
                     <svg
+                      aria-hidden="true"
+                      focusable="false"
                       width={20}
                       height={20}
                       viewBox="0 0 20 20"
@@ -350,6 +365,7 @@ function ChatItemRow({
           )}
         >
           <button
+            type="button"
             onClick={onSelect}
             onMouseEnter={onPrefetch}
             onFocus={onPrefetch}
@@ -411,7 +427,7 @@ export const AppSidebar = memo(function AppSidebar({
   onNewChat,
   onChatSelect,
 }: AppSidebarProps) {
-  const { state, isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
   const user = useUser();
@@ -419,7 +435,6 @@ export const AppSidebar = memo(function AppSidebar({
   const [currentPath, setCurrentPath] = useState(pathname ?? "");
 
   const userName = user?.displayName ?? "User";
-  const userEmail = user?.primaryEmail ?? "";
   const userImage = user?.profileImageUrl || undefined;
 
   useEffect(() => {
@@ -629,14 +644,18 @@ export const AppSidebar = memo(function AppSidebar({
               >
                 <div className="inline-flex items-center gap-1.5 w-fit group-data-[collapsible=icon]:justify-center">
                   <div className="flex items-center justify-center size-6 group-data-[collapsible=icon]:mx-auto shrink-0 transition-all duration-200">
-                    <img
+                    <Image
                       src="/Black.svg"
                       alt="OneGPT"
+                      width={24}
+                      height={24}
                       className="size-6 logo-dark"
                     />
-                    <img
+                    <Image
                       src="/white.svg"
                       alt="OneGPT"
+                      width={24}
+                      height={24}
                       className="size-6 hidden logo-light"
                     />
                   </div>
@@ -727,8 +746,8 @@ export const AppSidebar = memo(function AppSidebar({
             <div className="group-data-[collapsible=icon]:hidden">
               {isLoading && chats.length === 0 ? (
                 // Skeleton loading state
-                Array.from({ length: 5 }).map((_, index) => (
-                  <SidebarMenuItem key={`chat-skeleton-${index}`}>
+                CHAT_SKELETON_KEYS.map((key, index) => (
+                  <SidebarMenuItem key={key}>
                     <div
                       className="flex items-center w-full gap-2 rounded-md px-2 py-1.5 animate-pulse"
                       style={{ animationDelay: `${index * 100}ms` }}
@@ -845,7 +864,10 @@ export const AppSidebar = memo(function AppSidebar({
                 <div className="group-data-[collapsible=icon]:hidden">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex w-full items-center justify-between gap-2 px-3 py-4 text-left outline-hidden ring-0 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-0 active:bg-primary/20 active:text-sidebar-accent-foreground">
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-4 text-left outline-hidden ring-0 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-0 active:bg-primary/20 active:text-sidebar-accent-foreground"
+                      >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <Avatar className="h-8 w-8 overflow-hidden rounded-full">
                             {userImage && <AvatarImage src={userImage} />}
@@ -920,6 +942,7 @@ export const AppSidebar = memo(function AppSidebar({
                 {/* Sign In button - expanded state */}
                 <div className="group-data-[collapsible=icon]:hidden px-2 py-3">
                   <button
+                    type="button"
                     onClick={() => router.push("/sign-in")}
                     className="flex w-full items-center px-5 py-2.5 rounded-xl text-left outline-hidden transition-colors hover:bg-sidebar-accent active:bg-primary/20"
                   >
