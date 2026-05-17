@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ExamplePrompts } from "@/components/chat/example-prompts";
 import { FormComponent } from "@/components/chat/form-component";
 import Messages from "@/components/chat/messages";
 import { ShareDialog } from "@/components/chat/share-dialog";
@@ -800,16 +801,32 @@ export function ChatInterface({
     [childrenByParent, handleRetry, isLoading],
   );
 
-  const handleQuote = useCallback((text: string) => {
-    const quoted = `> ${text.split("\n").join("\n> ")}\n\n`;
-    setInput((prev) => quoted + prev);
+  const focusComposer = useCallback(() => {
     setTimeout(() => {
       const textarea = document.querySelector(
         'textarea[placeholder*="Ask"]',
       ) as HTMLTextAreaElement | null;
       textarea?.focus();
-    }, 100);
+    }, 50);
   }, []);
+
+  const handleQuote = useCallback(
+    (text: string) => {
+      const quoted = `> ${text.split("\n").join("\n> ")}\n\n`;
+      setInput((prev) => quoted + prev);
+      focusComposer();
+    },
+    [focusComposer],
+  );
+
+  const handleSelectExamplePrompt = useCallback(
+    (prompt: { text: string; mode?: ChatMode }) => {
+      setInput(prompt.text);
+      setSearchMode(prompt.mode ?? "chat");
+      focusComposer();
+    },
+    [focusComposer],
+  );
 
   const hasMessages = displayMessages.length > 0;
   const displayTitle =
@@ -1054,51 +1071,10 @@ export function ChatInterface({
             onFilesChange={setPendingFiles}
           />
 
-          <div className="mt-4 flex max-w-2xl flex-wrap justify-center gap-2">
-            {(
-              [
-                {
-                  label: "Summarize text",
-                  icon: "solar:document-text-linear",
-                  prompt: "Summarize the following: ",
-                },
-                {
-                  label: "Help me write",
-                  icon: "solar:pen-new-square-linear",
-                  prompt: "Help me write ",
-                },
-                {
-                  label: "Brainstorm ideas",
-                  icon: "solar:stars-linear",
-                  prompt: "Brainstorm ideas for ",
-                },
-                {
-                  label: "Analyze & explain",
-                  icon: "solar:lightbulb-linear",
-                  prompt: "Analyze and explain ",
-                },
-              ] as const
-            ).map((chip) => (
-              <button
-                key={chip.label}
-                type="button"
-                onClick={() => {
-                  if ("action" in chip && chip.action === "search") {
-                    setSearchMode("search");
-                  } else if ("prompt" in chip) {
-                    setInput(chip.prompt);
-                  }
-                }}
-                className="group inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3.5 py-2 text-xs font-medium text-muted-foreground transition-all duration-200 hover:border-border hover:bg-muted hover:text-foreground"
-              >
-                <Icon
-                  icon={chip.icon}
-                  className="size-3.5 transition-colors duration-200 group-hover:text-foreground"
-                />
-                {chip.label}
-              </button>
-            ))}
-          </div>
+          <ExamplePrompts
+            className="mt-4"
+            onSelect={handleSelectExamplePrompt}
+          />
         </div>
       )}
 
