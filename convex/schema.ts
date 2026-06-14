@@ -53,8 +53,7 @@ const schema = defineSchema({
   // Users
   // -------------------------------------------------------------------------
   users: defineTable({
-    hexclaveId: v.optional(v.string()),
-    stackId: v.optional(v.string()),
+    hexclaveId: v.string(),
     name: v.string(),
     email: v.string(),
     imageUrl: v.optional(v.string()),
@@ -62,7 +61,6 @@ const schema = defineSchema({
     createdAt: v.number(),
   })
     .index("by_hexclaveId", ["hexclaveId"])
-    .index("by_stackId", ["stackId"])
     .index("by_email", ["email"]),
 
   // -------------------------------------------------------------------------

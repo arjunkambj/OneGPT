@@ -4,34 +4,14 @@ import { getCurrentHexclaveUser } from "./auth";
 
 type QueryOrMutationCtx = QueryCtx | MutationCtx;
 
-export const getUserByHexclaveOrLegacyId = async (
+export const getUserByHexclaveId = async (
   ctx: QueryOrMutationCtx,
   hexclaveId: string,
 ) =>
-  (await ctx.db
+  await ctx.db
     .query("users")
     .withIndex("by_hexclaveId", (q) => q.eq("hexclaveId", hexclaveId))
-    .first()) ??
-  (await ctx.db
-    .query("users")
-    .withIndex("by_stackId", (q) => q.eq("stackId", hexclaveId))
-    .first());
-
-export const backfillHexclaveId = async (
-  ctx: MutationCtx,
-  user: Doc<"users">,
-  hexclaveId: string,
-) => {
-  if (user.hexclaveId === hexclaveId) return user;
-
-  await ctx.db.patch(user._id, {
-    hexclaveId,
-    stackId: undefined,
-    updatedAt: Date.now(),
-  });
-
-  return (await ctx.db.get(user._id)) ?? user;
-};
+    .first();
 
 const getUserFields = (
   user: Extract<
@@ -54,15 +34,15 @@ export const getCurrentUser = async (ctx: QueryOrMutationCtx) => {
   const auth = await getCurrentHexclaveUser(ctx);
   if (!auth.authenticated) return null;
 
-  return await getUserByHexclaveOrLegacyId(ctx, auth.user.id);
+  return await getUserByHexclaveId(ctx, auth.user.id);
 };
 
 export const requireCurrentUser = async (ctx: MutationCtx) => {
   const auth = await getCurrentHexclaveUser(ctx);
   if (!auth.authenticated) throw new Error(auth.error);
 
-  const existing = await getUserByHexclaveOrLegacyId(ctx, auth.user.id);
-  if (existing) return await backfillHexclaveId(ctx, existing, auth.user.id);
+  const existing = await getUserByHexclaveId(ctx, auth.user.id);
+  if (existing) return existing;
 
   const now = Date.now();
   const userId = await ctx.db.insert("users", {

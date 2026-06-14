@@ -3,7 +3,7 @@ import { Webhook } from "svix";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { httpAction, internalMutation } from "../_generated/server";
-import { getUserByHexclaveOrLegacyId } from "../lib/users";
+import { getUserByHexclaveId } from "../lib/users";
 
 type HexclaveWebhookEvent = {
   type: string;
@@ -112,22 +112,16 @@ export const upsertFromHexclaveWebhook = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const email = args.email.trim().toLowerCase();
-    const existingUser = await getUserByHexclaveOrLegacyId(
-      ctx,
-      args.hexclaveId,
-    );
+    const existingUser = await getUserByHexclaveId(ctx, args.hexclaveId);
 
     if (existingUser) {
-      const patch: Partial<Doc<"users">> = {
+      await ctx.db.patch(existingUser._id, {
         hexclaveId: args.hexclaveId,
-        stackId: undefined,
         name: args.name,
         email,
         imageUrl: args.imageUrl,
         updatedAt: now,
-      };
-
-      await ctx.db.patch(existingUser._id, patch);
+      });
       return existingUser._id;
     }
 
@@ -149,10 +143,7 @@ export const deleteFromHexclaveWebhook = internalMutation({
     hexclaveId: v.string(),
   },
   handler: async (ctx, args) => {
-    const existingUser = await getUserByHexclaveOrLegacyId(
-      ctx,
-      args.hexclaveId,
-    );
+    const existingUser = await getUserByHexclaveId(ctx, args.hexclaveId);
 
     if (!existingUser) {
       return;
