@@ -24,7 +24,7 @@ No test framework is configured.
 
 - **Frontend**: Next.js 16 (App Router) + React 19 + TypeScript (strict)
 - **Backend**: Convex (real-time serverless database + functions)
-- **Auth**: Stack Auth with JWT, synced to Convex via webhook
+- **Auth**: Hexclave with JWT, synced to Convex via webhook
 - **Styling**: Tailwind CSS 4 + shadcn/ui (radix-maia style) + CSS variables via next-themes
 - **Linter/Formatter**: Biome (not ESLint/Prettier)
 - **Package Manager**: pnpm
@@ -39,15 +39,15 @@ No test framework is configured.
 ### Data Flow
 
 - **Client-side**: Convex React hooks for real-time queries/mutations via `ConvexClientProvider`
-- **Server-side**: `convex/nextjs` helpers (`fetchQuery`, `preloadQuery`) with JWT forwarded from Stack Auth
-- **Auth flow**: Stack Auth → JWT → Convex `ctx.auth.getUserIdentity()` → `tokenIdentifier` lookup in users table
+- **Server-side**: `convex/nextjs` helpers (`fetchQuery`, `preloadQuery`) with JWT forwarded from Hexclave
+- **Auth flow**: Hexclave → JWT → Convex `ctx.auth.getUserIdentity()` → user lookup in Convex
 
 ### Convex Backend (`convex/`)
 
 - `schema.ts` — tables: users, chats, messages, customInstructions, userPreferences, usage, subscriptions
 - Functions are file-based routed: `convex/usage.ts` → `api.usage.functionName`
 - `lib/auth.ts` / `lib/users.ts` — shared auth helpers (`requireAuth`, `getCurrentUser`, `requireCurrentUser`)
-- `webhooks/stack.ts` — Svix-verified webhook for syncing Stack Auth users to Convex
+- `webhooks/stack.ts` — Svix-verified webhook for syncing Hexclave users to Convex
 - `_generated/` — auto-generated types, never edit manually
 - See `convex_rules.md` at the repo root for detailed Convex conventions (validators, queries, mutations, actions, auth patterns)
 

@@ -1,6 +1,6 @@
 import DodoPayments from "dodopayments";
 import { NextResponse } from "next/server";
-import { stackServerApp } from "@/stack/server";
+import { hexclaveServerApp } from "@/hexclave/server";
 
 const tierProductIds = {
   pro: process.env.ONEGPT_PRO_PLAN_PRODUCT_ID,
@@ -8,7 +8,7 @@ const tierProductIds = {
 } as const;
 
 export async function POST(req: Request) {
-  const user = await stackServerApp.getUser({ tokenStore: req });
+  const user = await hexclaveServerApp.getUser({ tokenStore: req });
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         name: user.displayName ?? undefined,
       },
       metadata: {
-        stackId: user.id,
+        hexclaveId: user.id,
         tier,
       },
       return_url: `${baseUrl.replace(/\/$/, "")}/settings?tab=subscription&checkout=success`,

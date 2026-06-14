@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Figtree, Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
 import { Databuddy } from "@databuddy/sdk/react";
-import { StackProvider, StackTheme } from "@stackframe/stack";
+import { HexclaveProvider, HexclaveTheme } from "@hexclave/next";
 import { ThemeProvider } from "next-themes";
 import ConvexClientProvider from "@/components/ConvexClientProvider";
 import { Toaster } from "@/components/ui/sonner";
-import { stackServerApp } from "@/stack/server";
+import { hexclaveServerApp } from "@/hexclave/server";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -97,12 +97,12 @@ export default function RootLayout({
             "neutraldark",
           ]}
         >
-          <StackProvider app={stackServerApp}>
-            <StackTheme>
+          <HexclaveProvider app={hexclaveServerApp}>
+            <HexclaveTheme>
               <ConvexClientProvider>{children}</ConvexClientProvider>
               <Toaster />
-            </StackTheme>
-          </StackProvider>
+            </HexclaveTheme>
+          </HexclaveProvider>
         </ThemeProvider>
         <Databuddy clientId="4b9193ed-7b55-45b3-9f79-d5a587a0702c" />
       </body>

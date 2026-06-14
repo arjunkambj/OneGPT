@@ -174,14 +174,14 @@ export default {
 
 The `domain` must be the issuer URL of the JWT provider. Convex fetches `{domain}/.well-known/openid-configuration` to discover the JWKS endpoint. The `applicationID` is checked against the JWT `aud` (audience) claim.
 
-- Use `ctx.auth.getUserIdentity()` to get the authenticated user's identity in any query, mutation, or action. This returns `null` if the user is not authenticated, or a `UserIdentity` object with Stack Auth fields such as `tokenIdentifier`, `issuer`, `subject`, `email`, `email_verified`, `name`, `project_id`, `selected_team_id`, `is_anonymous`, `is_restricted`, `restricted_reason`, `requires_totp_mfa`, `role`, and `signed_up_at`.
+- Use `ctx.auth.getUserIdentity()` to get the authenticated user's identity in any query, mutation, or action. This returns `null` if the user is not authenticated, or a `UserIdentity` object with Hexclave fields such as `tokenIdentifier`, `issuer`, `subject`, `email`, `email_verified`, `name`, `project_id`, `selected_team_id`, `is_anonymous`, `is_restricted`, `restricted_reason`, `requires_totp_mfa`, `role`, and `signed_up_at`.
 - In Convex `UserIdentity`, `tokenIdentifier` is guaranteed and is the canonical stable identifier for the authenticated identity. For any auth-linked database lookup or ownership check, prefer `identity.tokenIdentifier` over `identity.subject`. Do NOT use `identity.subject` alone as a global identity key.
-- With Stack Auth, `identity.subject` is the Stack user id and `identity.selected_team_id` is the selected Stack team id. Use these only after deriving them server-side from `ctx.auth.getUserIdentity()`; never trust client-passed user or team ids for authorization.
-- Stack Auth custom identity fields use snake_case in Convex (`email_verified`, `selected_team_id`, `is_anonymous`, `is_restricted`, `requires_totp_mfa`, `signed_up_at`). Keep that naming when reading from `identity`.
-- Expected Stack Auth identity shape in Convex:
+- With Hexclave, `identity.subject` is the Hexclave user id and `identity.selected_team_id` is the selected Hexclave team id. Use these only after deriving them server-side from `ctx.auth.getUserIdentity()`; never trust client-passed user or team ids for authorization.
+- Hexclave custom identity fields use snake_case in Convex (`email_verified`, `selected_team_id`, `is_anonymous`, `is_restricted`, `requires_totp_mfa`, `signed_up_at`). Keep that naming when reading from `identity`.
+- Expected Hexclave identity shape in Convex:
 
 ```ts
-type StackConvexIdentity = {
+type HexclaveConvexIdentity = {
   tokenIdentifier: string;
   issuer: string;
   subject: string;
@@ -203,15 +203,15 @@ type StackConvexIdentity = {
 
 - Treat this schema as the decoded identity shape returned by Convex, not as a token to store. Do not persist raw JWTs or refresh tokens in Convex tables.
 - NEVER accept a `userId` or any user identifier as a function argument for authorization purposes. Always derive the user identity server-side via `ctx.auth.getUserIdentity()`.
-- In this repo, Stack Auth is wired into the Convex client with `convex.setAuth(stackClientApp.getConvexClientAuth({}))` and a plain `ConvexProvider`. Do not use `ConvexProviderWithAuth` for the Stack setup unless the provider architecture is intentionally changed:
+- In this repo, Hexclave is wired into the Convex client with `convex.setAuth(hexclaveClientApp.getConvexClientAuth({}))` and a plain `ConvexProvider`. Do not use `ConvexProviderWithAuth` for the Hexclave setup unless the provider architecture is intentionally changed:
 
 ```tsx
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
-import { stackClientApp } from "@/stack/client";
+import { hexclaveClientApp } from "@/hexclave/client";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-convex.setAuth(stackClientApp.getConvexClientAuth({}));
+convex.setAuth(hexclaveClientApp.getConvexClientAuth({}));
 
 function App({ children }: { children: React.ReactNode }) {
   return <ConvexProvider client={convex}>{children}</ConvexProvider>;
@@ -225,10 +225,10 @@ function App({ children }: { children: React.ReactNode }) {
   - Use `fetchQuery` for server-only reads that do not need client-side reactivity.
   - Use `fetchMutation` and `fetchAction` in Server Actions and Route Handlers.
 - For authenticated Next.js server-side Convex calls, ALWAYS forward a JWT in the third options argument (`{ token }`) and keep authorization inside Convex with `ctx.auth.getUserIdentity()`. Do NOT pass a `userId` argument from Next.js just to authorize access.
-- In this repo, Stack Auth is the source of that token on the server. Prefer a helper that does:
+- In this repo, Hexclave is the source of that token on the server. Prefer a helper that does:
 
 ```ts
-const user = await stackServerApp.getUser({ tokenStore: request });
+const user = await hexclaveServerApp.getUser({ tokenStore: request });
 const token = user
   ? ((await user.getAuthJson()).accessToken ?? undefined)
   : undefined;

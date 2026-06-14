@@ -1,7 +1,7 @@
 "use client";
 
+import { useUser } from "@hexclave/next";
 import { Icon } from "@iconify/react";
-import { useUser } from "@stackframe/stack";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import Image from "next/image";

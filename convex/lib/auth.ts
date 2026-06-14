@@ -1,31 +1,44 @@
-import type { ActionCtx, MutationCtx, QueryCtx } from "../_generated/server";
-import { stackServerApp } from "./stack";
+import { z } from "zod";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 
-type Ctx = QueryCtx | MutationCtx | ActionCtx;
+type Ctx = QueryCtx | MutationCtx;
 
-export type PartialStackUser = {
-  id: string;
-  displayName: string | null;
-  primaryEmail: string | null;
-  primaryEmailVerified: boolean;
-  isAnonymous: boolean;
-  isMultiFactorRequired: boolean;
-  isRestricted: boolean;
-  restrictedReason: string | null;
-};
+const HexclaveUserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  emailVerified: z.boolean(),
+  isAnonymous: z.boolean(),
+  isRestricted: z.boolean(),
+  name: z.string(),
+  role: z.string(),
+  selectedTeamId: z.string().nullable(),
+  tokenIdentifier: z.string(),
+});
 
-export const requireAuth = async (ctx: Ctx) => {
-  const user = await stackServerApp.getPartialUser({ from: "convex", ctx });
-
-  if (user == null) {
-    throw new Error("Authentication required.");
+export const getCurrentHexclaveUser = async (ctx: Ctx) => {
+  const identity = await ctx.auth.getUserIdentity();
+  if (identity == null) {
+    return { authenticated: false, error: "Unauthenticated." } as const;
   }
 
-  return user as PartialStackUser;
-};
+  const user = HexclaveUserSchema.safeParse({
+    id: identity.subject,
+    email: identity.email,
+    emailVerified: identity.email_verified,
+    isAnonymous: identity.is_anonymous,
+    isRestricted: identity.is_restricted,
+    name: identity.name,
+    role: identity.role,
+    selectedTeamId: identity.selected_team_id ?? null,
+    tokenIdentifier: identity.tokenIdentifier,
+  });
 
-export const getAuth = async (ctx: Ctx) => {
-  const user = await stackServerApp.getPartialUser({ from: "convex", ctx });
+  if (!user.success) {
+    return {
+      authenticated: false,
+      error: "Missing Hexclave user claims.",
+    } as const;
+  }
 
-  return user as PartialStackUser | null;
+  return { authenticated: true, user: user.data } as const;
 };

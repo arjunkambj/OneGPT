@@ -31,7 +31,7 @@ const policySections = [
     title: "Description of Service",
     paragraphs: [
       "OneGPT is a unified AI chat platform that gives you access to multiple AI models from different providers in a single interface. You can switch between models from OpenAI, Anthropic, Google, DeepSeek, Mistral, xAI, and others to find the best response for your needs.",
-      "The service is hosted on Vercel, uses Convex for backend data storage, and integrates with Stack Auth for account authentication.",
+      "The service is hosted on Vercel, uses Convex for backend data storage, and integrates with Hexclave for account authentication.",
     ],
   },
   {
@@ -86,7 +86,7 @@ const policySections = [
       },
       { bold: "Vercel:", text: "Provides hosting and infrastructure" },
       { bold: "Convex:", text: "Powers our backend data layer" },
-      { bold: "Stack Auth:", text: "Handles account authentication" },
+      { bold: "Hexclave:", text: "Handles account authentication" },
       {
         bold: "DodoPayments:",
         text: "Processes all billing and subscription payments",

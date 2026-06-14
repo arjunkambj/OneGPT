@@ -1,4 +1,4 @@
-import { useUser } from "@stackframe/stack";
+import { useUser } from "@hexclave/next";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../convex/_generated/api";
 

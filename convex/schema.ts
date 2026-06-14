@@ -50,16 +50,18 @@ export const attachment = v.object({
 
 const schema = defineSchema({
   // -------------------------------------------------------------------------
-  // Users (existing — unchanged)
+  // Users
   // -------------------------------------------------------------------------
   users: defineTable({
-    stackId: v.string(),
+    hexclaveId: v.optional(v.string()),
+    stackId: v.optional(v.string()),
     name: v.string(),
     email: v.string(),
     imageUrl: v.optional(v.string()),
     updatedAt: v.number(),
     createdAt: v.number(),
   })
+    .index("by_hexclaveId", ["hexclaveId"])
     .index("by_stackId", ["stackId"])
     .index("by_email", ["email"]),
 

@@ -21,9 +21,9 @@ import {
   getTitleModelValue,
   isSupportedModel,
 } from "@/constant/ai-model";
+import { getHexclaveConvexServerToken } from "@/hexclave/server";
 import { buildSystemPrompt } from "@/lib/ai/build-system-prompt";
 import type { ChatMode } from "@/lib/types";
-import { stackServerApp } from "@/stack/server";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
@@ -398,11 +398,7 @@ async function persistAssistantError({
 }
 
 export async function POST(req: Request) {
-  const user = await stackServerApp.getUser({ tokenStore: req });
-  if (!user) return new Response("Unauthorized", { status: 401 });
-
-  const authJson = await user.getAuthJson();
-  const token = authJson.accessToken ?? undefined;
+  const token = await getHexclaveConvexServerToken(req);
   if (!token) return new Response("Missing auth token", { status: 401 });
 
   const body = await req.json();
@@ -457,7 +453,7 @@ export async function POST(req: Request) {
     hasActiveSubscription &&
     (subscription?.tier === "pro" || subscription?.tier === "max");
   const isMaxUser = hasActiveSubscription && subscription?.tier === "max";
-  const access = canUseModel(model, user, isProUser, isMaxUser);
+  const access = canUseModel(model, storedChat.userId, isProUser, isMaxUser);
 
   if (!access.canUse) {
     return Response.json(

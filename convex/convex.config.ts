@@ -1,7 +1,7 @@
-import stackAuthComponent from "@stackframe/stack/convex.config";
-import { defineApp } from "convex/server";
+import hexclaveComponent from "@hexclave/next/convex.config";
+import { type ComponentDefinition, defineApp } from "convex/server";
 
 const app = defineApp();
-app.use(stackAuthComponent);
+app.use(hexclaveComponent as ComponentDefinition);
 
 export default app;

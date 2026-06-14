@@ -82,7 +82,7 @@ const policySections = [
       },
       {
         bold: "Authentication:",
-        text: "Account sign-in is managed through Stack Auth.",
+        text: "Account sign-in is managed through Hexclave.",
       },
       {
         bold: "Payments:",

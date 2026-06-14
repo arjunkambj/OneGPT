@@ -2,10 +2,10 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { SettingsContent } from "@/components/settings/settings-content";
 import { Skeleton } from "@/components/ui/skeleton";
-import { stackServerApp } from "@/stack/server";
+import { hexclaveServerApp } from "@/hexclave/server";
 
 export default async function SettingsPage() {
-  const user = await stackServerApp.getUser();
+  const user = await hexclaveServerApp.getUser();
   if (!user) {
     redirect("/sign-in");
   }

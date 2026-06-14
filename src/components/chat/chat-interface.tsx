@@ -1,8 +1,8 @@
 "use client";
 
 import { type UIMessage, useChat } from "@ai-sdk/react";
+import { useUser } from "@hexclave/next";
 import { Icon } from "@iconify/react";
-import { useUser } from "@stackframe/stack";
 import { DefaultChatTransport, type FileUIPart } from "ai";
 import { useConvex, useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";

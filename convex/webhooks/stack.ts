@@ -3,8 +3,9 @@ import { Webhook } from "svix";
 import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import { httpAction, internalMutation } from "../_generated/server";
+import { getUserByHexclaveOrLegacyId } from "../lib/users";
 
-type StackWebhookEvent = {
+type HexclaveWebhookEvent = {
   type: string;
   data?: unknown;
 };
@@ -20,12 +21,12 @@ function asString(value: unknown) {
   return typeof value === "string" ? value : undefined;
 }
 
-export const stackWebhookHandler = httpAction(async (ctx, request) => {
+export const hexclaveWebhookHandler = httpAction(async (ctx, request) => {
   const payload = await request.text();
-  const webhookSecret = process.env.STACK_WEBHOOK_SECRET;
+  const webhookSecret = process.env.HEXCLAVE_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
-    throw new Error("Missing STACK_WEBHOOK_SECRET in environment variables");
+    throw new Error("Missing HEXCLAVE_WEBHOOK_SECRET in environment variables");
   }
 
   const svix_id = request.headers.get("svix-id");
@@ -43,7 +44,7 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    }) as StackWebhookEvent;
+    }) as HexclaveWebhookEvent;
 
     console.log(`Webhook received: ${evt.type}`);
 
@@ -55,8 +56,8 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
           return new Response("Invalid webhook payload", { status: 400 });
         }
 
-        const stackId = asString(data.id);
-        if (!stackId) {
+        const hexclaveId = asString(data.id);
+        if (!hexclaveId) {
           return new Response("Missing user id", { status: 400 });
         }
 
@@ -64,25 +65,29 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
         const email = asString(data.primary_email) ?? "";
         const imageUrl = asString(data.profile_image_url);
 
-        await ctx.runMutation(internal.webhooks.stack.upsertFromStackWebhook, {
-          stackId,
-          name,
-          email,
-          imageUrl,
-        });
+        await ctx.runMutation(
+          internal.webhooks.stack.upsertFromHexclaveWebhook,
+          {
+            hexclaveId,
+            name,
+            email,
+            imageUrl,
+          },
+        );
         break;
       }
 
       case "user.deleted": {
         const data = asObject(evt.data);
-        const stackId = data ? asString(data.id) : undefined;
-        if (!stackId) {
+        const hexclaveId = data ? asString(data.id) : undefined;
+        if (!hexclaveId) {
           break;
         }
 
-        await ctx.runMutation(internal.webhooks.stack.deleteFromStackWebhook, {
-          stackId,
-        });
+        await ctx.runMutation(
+          internal.webhooks.stack.deleteFromHexclaveWebhook,
+          { hexclaveId },
+        );
         break;
       }
 
@@ -92,14 +97,14 @@ export const stackWebhookHandler = httpAction(async (ctx, request) => {
 
     return new Response("ok", { status: 200 });
   } catch (err) {
-    console.error("Invalid Stack webhook signature or payload:", err);
+    console.error("Invalid Hexclave webhook signature or payload:", err);
     return new Response("Invalid signature", { status: 400 });
   }
 });
 
-export const upsertFromStackWebhook = internalMutation({
+export const upsertFromHexclaveWebhook = internalMutation({
   args: {
-    stackId: v.string(),
+    hexclaveId: v.string(),
     name: v.string(),
     email: v.string(),
     imageUrl: v.optional(v.string()),
@@ -107,13 +112,15 @@ export const upsertFromStackWebhook = internalMutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const email = args.email.trim().toLowerCase();
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_stackId", (q) => q.eq("stackId", args.stackId))
-      .first();
+    const existingUser = await getUserByHexclaveOrLegacyId(
+      ctx,
+      args.hexclaveId,
+    );
 
     if (existingUser) {
       const patch: Partial<Doc<"users">> = {
+        hexclaveId: args.hexclaveId,
+        stackId: undefined,
         name: args.name,
         email,
         imageUrl: args.imageUrl,
@@ -125,7 +132,7 @@ export const upsertFromStackWebhook = internalMutation({
     }
 
     const insertDoc = {
-      stackId: args.stackId,
+      hexclaveId: args.hexclaveId,
       name: args.name,
       email,
       imageUrl: args.imageUrl,
@@ -137,15 +144,15 @@ export const upsertFromStackWebhook = internalMutation({
   },
 });
 
-export const deleteFromStackWebhook = internalMutation({
+export const deleteFromHexclaveWebhook = internalMutation({
   args: {
-    stackId: v.string(),
+    hexclaveId: v.string(),
   },
   handler: async (ctx, args) => {
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_stackId", (q) => q.eq("stackId", args.stackId))
-      .first();
+    const existingUser = await getUserByHexclaveOrLegacyId(
+      ctx,
+      args.hexclaveId,
+    );
 
     if (!existingUser) {
       return;

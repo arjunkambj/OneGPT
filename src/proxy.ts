@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { stackServerApp } from "@/stack/server";
+import { hexclaveServerApp } from "@/hexclave/server";
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -10,7 +10,7 @@ export async function proxy(request: NextRequest) {
 
   if (isAuthUrl) {
     // Check if user is authenticated
-    const user = await stackServerApp.getUser();
+    const user = await hexclaveServerApp.getUser();
 
     if (user) {
       // Redirect authenticated users to home

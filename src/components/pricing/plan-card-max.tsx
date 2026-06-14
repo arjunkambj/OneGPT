@@ -1,7 +1,7 @@
 "use client";
 
+import { useUser } from "@hexclave/next";
 import { Icon } from "@iconify/react";
-import { useUser } from "@stackframe/stack";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";

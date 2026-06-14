@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
-import { getCurrentUser } from "./lib/users";
+import { getCurrentUser, getUserByHexclaveOrLegacyId } from "./lib/users";
 
 // ---------------------------------------------------------------------------
 // Query: get the current user's subscription
@@ -28,7 +28,7 @@ export const getUserSubscription = query({
 export const syncFromDodoWebhook = internalMutation({
   args: {
     externalId: v.string(),
-    stackId: v.optional(v.string()),
+    hexclaveId: v.optional(v.string()),
     customerEmail: v.optional(v.string()),
     customerId: v.optional(v.string()),
     productId: v.optional(v.string()),
@@ -58,12 +58,9 @@ export const syncFromDodoWebhook = internalMutation({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .first();
     const existingUser = existing ? await ctx.db.get(existing.userId) : null;
-    const stackId = args.stackId;
-    const user = stackId
-      ? await ctx.db
-          .query("users")
-          .withIndex("by_stackId", (q) => q.eq("stackId", stackId))
-          .first()
+    const hexclaveId = args.hexclaveId;
+    const user = hexclaveId
+      ? await getUserByHexclaveOrLegacyId(ctx, hexclaveId)
       : null;
 
     const resolvedUser =

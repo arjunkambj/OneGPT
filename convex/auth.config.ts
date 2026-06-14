@@ -1,4 +1,4 @@
-import { getConvexProvidersConfig } from "@stackframe/stack";
+import { getConvexProvidersConfig } from "@hexclave/next/convex-auth.config";
 
 const getEnv = (name: string) => {
   const value = process.env[name];
@@ -8,6 +8,6 @@ const getEnv = (name: string) => {
 
 export default {
   providers: getConvexProvidersConfig({
-    projectId: getEnv("NEXT_PUBLIC_STACK_PROJECT_ID"),
+    projectId: getEnv("NEXT_PUBLIC_HEXCLAVE_PROJECT_ID"),
   }),
 };

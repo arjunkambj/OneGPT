@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { stackWebhookHandler } from "./webhooks/stack";
+import { hexclaveWebhookHandler } from "./webhooks/stack";
 
 const http = httpRouter();
 
@@ -93,7 +93,7 @@ type DodoWebhookData = {
   subscription_id?: string;
   product_id?: string;
   product_cart?: { product_id?: string }[];
-  metadata?: { stackId?: string; tier?: "pro" | "max" };
+  metadata?: { hexclaveId?: string; tier?: "pro" | "max" };
   customer?: { email?: string; customer_id?: string };
   customer_id?: string;
   recurring_pre_tax_amount?: number;
@@ -160,9 +160,9 @@ function getDodoStatus(type: string, data: DodoWebhookData) {
 }
 
 http.route({
-  path: "/webhook/stack",
+  path: "/webhook/hexclave",
   method: "POST",
-  handler: stackWebhookHandler,
+  handler: hexclaveWebhookHandler,
 });
 
 http.route({
@@ -221,7 +221,7 @@ http.route({
     try {
       await ctx.runMutation(internal.subscriptions.syncFromDodoWebhook, {
         externalId,
-        stackId: metadata?.stackId,
+        hexclaveId: metadata?.hexclaveId,
         customerEmail: data.customer?.email,
         customerId: data.customer?.customer_id ?? data.customer_id,
         productId,

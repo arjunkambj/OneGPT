@@ -1,7 +1,7 @@
 "use client";
 
+import { useHexclaveApp } from "@hexclave/next";
 import { Icon } from "@iconify/react";
-import { useStackApp } from "@stackframe/stack";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function SignInPage() {
-  const app = useStackApp();
+  const app = useHexclaveApp();
 
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "otp">("email");
