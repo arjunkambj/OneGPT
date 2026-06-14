@@ -328,6 +328,22 @@ export const models: Model[] = [
     provider: "alibaba",
   },
   {
+    value: "onegpt-kimi-k2.7-code",
+    openrouterId: "moonshotai/kimi-k2.7-code",
+    label: "Kimi K2.7 Code",
+    description: "MoonShot AI's latest coding-focused agentic LLM",
+    vision: true,
+    reasoning: true,
+    experimental: false,
+    category: "Free",
+    pro: false,
+    requiresAuth: true,
+    freeUnlimited: false,
+    maxOutputTokens: 262000,
+    isNew: true,
+    provider: "moonshot",
+  },
+  {
     value: "onegpt-kimi-k2.6",
     openrouterId: "moonshotai/kimi-k2.6",
     label: "Kimi K2.6",
@@ -350,6 +366,28 @@ export const models: Model[] = [
         },
       },
     },
+  },
+  {
+    value: "onegpt-minimax-m3",
+    openrouterId: "minimax/minimax-m3",
+    label: "MiniMax M3",
+    description: "MiniMax's latest long-context multimodal agentic LLM",
+    vision: true,
+    reasoning: true,
+    experimental: false,
+    category: "Free",
+    pro: false,
+    requiresAuth: true,
+    freeUnlimited: false,
+    maxOutputTokens: 1000000,
+    fast: true,
+    isNew: true,
+    parameters: {
+      temperature: 1.0,
+      topP: 0.95,
+      topK: 40,
+    },
+    provider: "minimax",
   },
   {
     value: "onegpt-minimax-m2.7",
@@ -567,10 +605,10 @@ const SUPPORTED_MODEL_VALUE_SET = new Set(models.map((model) => model.value));
 export const DEFAULT_MODEL_VALUE = "onegpt-kimi-k2.6";
 export const TITLE_MODEL_VALUE = "onegpt-minimax-m2.7";
 export const DEFAULT_FAVORITE_MODELS: SupportedModel[] = [
-  "onegpt-kimi-k2.6",
+  "onegpt-kimi-k2.7-code",
   "onegpt-gpt-5.4",
   "onegpt-glm-5.1",
-  "onegpt-minimax-m2.7",
+  "onegpt-minimax-m3",
   "onegpt-deepseek-v4-flash",
 ];
 export const SUPPORTED_MODEL_VALUES = models.map(
