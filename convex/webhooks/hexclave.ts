@@ -21,6 +21,29 @@ function asString(value: unknown) {
   return typeof value === "string" ? value : undefined;
 }
 
+function firstString(data: Record<string, unknown>, keys: string[]) {
+  return keys.map((key) => asString(data[key])).find(Boolean);
+}
+
+function getWebhookUserProfile(data: Record<string, unknown>) {
+  const email = firstString(data, ["primary_email", "primaryEmail", "email"])
+    ?.trim()
+    .toLowerCase();
+  const name = firstString(data, ["display_name", "displayName", "name"]);
+
+  return {
+    hexclaveId: asString(data.id),
+    name,
+    email,
+    imageUrl: firstString(data, [
+      "profile_image_url",
+      "profileImageUrl",
+      "image_url",
+      "imageUrl",
+    ]),
+  };
+}
+
 export const hexclaveWebhookHandler = httpAction(async (ctx, request) => {
   const payload = await request.text();
   const webhookSecret = process.env.HEXCLAVE_WEBHOOK_SECRET;
@@ -56,17 +79,17 @@ export const hexclaveWebhookHandler = httpAction(async (ctx, request) => {
           return new Response("Invalid webhook payload", { status: 400 });
         }
 
-        const hexclaveId = asString(data.id);
+        const { hexclaveId, name, email, imageUrl } =
+          getWebhookUserProfile(data);
         if (!hexclaveId) {
           return new Response("Missing user id", { status: 400 });
         }
-
-        const name = asString(data.display_name) ?? "Unknown";
-        const email = asString(data.primary_email) ?? "";
-        const imageUrl = asString(data.profile_image_url);
+        if (!name && !email) {
+          return new Response("Missing user profile fields", { status: 400 });
+        }
 
         await ctx.runMutation(
-          internal.webhooks.stack.upsertFromHexclaveWebhook,
+          internal.webhooks.hexclave.upsertFromHexclaveWebhook,
           {
             hexclaveId,
             name,
@@ -85,7 +108,7 @@ export const hexclaveWebhookHandler = httpAction(async (ctx, request) => {
         }
 
         await ctx.runMutation(
-          internal.webhooks.stack.deleteFromHexclaveWebhook,
+          internal.webhooks.hexclave.deleteFromHexclaveWebhook,
           { hexclaveId },
         );
         break;
@@ -105,21 +128,21 @@ export const hexclaveWebhookHandler = httpAction(async (ctx, request) => {
 export const upsertFromHexclaveWebhook = internalMutation({
   args: {
     hexclaveId: v.string(),
-    name: v.string(),
-    email: v.string(),
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    const email = args.email.trim().toLowerCase();
+    const email = args.email?.trim().toLowerCase();
     const existingUser = await getUserByHexclaveId(ctx, args.hexclaveId);
 
     if (existingUser) {
       await ctx.db.patch(existingUser._id, {
         hexclaveId: args.hexclaveId,
-        name: args.name,
-        email,
-        imageUrl: args.imageUrl,
+        ...(args.name ? { name: args.name } : {}),
+        ...(email ? { email } : {}),
+        ...(args.imageUrl ? { imageUrl: args.imageUrl } : {}),
         updatedAt: now,
       });
       return existingUser._id;
@@ -127,8 +150,8 @@ export const upsertFromHexclaveWebhook = internalMutation({
 
     const insertDoc = {
       hexclaveId: args.hexclaveId,
-      name: args.name,
-      email,
+      name: args.name ?? email ?? "User",
+      email: email ?? "",
       imageUrl: args.imageUrl,
       updatedAt: now,
       createdAt: now,

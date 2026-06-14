@@ -13,11 +13,12 @@ import type * as customInstructions from "../customInstructions.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_users from "../lib/users.js";
+import type * as maintenance from "../maintenance.js";
 import type * as messages from "../messages.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as usage from "../usage.js";
 import type * as userPreferences from "../userPreferences.js";
-import type * as webhooks_stack from "../webhooks/stack.js";
+import type * as webhooks_hexclave from "../webhooks/hexclave.js";
 
 import type {
   ApiFromModules,
@@ -31,11 +32,12 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/users": typeof lib_users;
+  maintenance: typeof maintenance;
   messages: typeof messages;
   subscriptions: typeof subscriptions;
   usage: typeof usage;
   userPreferences: typeof userPreferences;
-  "webhooks/stack": typeof webhooks_stack;
+  "webhooks/hexclave": typeof webhooks_hexclave;
 }>;
 
 /**

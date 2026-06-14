@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
-import { hexclaveWebhookHandler } from "./webhooks/stack";
+import { hexclaveWebhookHandler } from "./webhooks/hexclave";
 
 const http = httpRouter();
 
