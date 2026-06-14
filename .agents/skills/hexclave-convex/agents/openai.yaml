@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hexclave Convex"
+  short_description: "Hexclave and Convex auth guidance"
+  default_prompt: "Use $hexclave-convex to wire Hexclave auth into Convex and review the auth flow."
